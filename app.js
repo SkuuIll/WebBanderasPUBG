@@ -876,12 +876,14 @@ function closeShortcuts() {
 // ─── EXPORT CSV ONLY ─────────────────────────────────────────
 function exportCSVOnly() {
   if (!selectedSlots.length) return;
-  const rows = ['TeamNumber,TeamName,TeamTags,ImageFileName,TeamColor'];
+  const rows = ['TeamNumber,TeamName,TeamShortName,ImageFileName,TeamColor'];
   selectedSlots.forEach((c, i) => {
     const num  = i + getStartNum();
     const cleanName = sanitizeFilename(c.name);
     const file = `${num}-${cleanName}.png`;
-    rows.push(`${num},${c.name},${c.tag},${file},${c.color}`);
+    const color = c.color.replace('#', '') + 'FF';
+    const tag = c.tag || c.iso.toUpperCase();
+    rows.push(`${num},${c.name},${tag},${file},${color}`);
   });
   const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
   const a = document.createElement('a');
@@ -901,7 +903,7 @@ async function generatePack() {
   const iconFolder   = observerFolder.folder('TeamIcon');
   const EXPORT_SIZE  = parseInt(exportSizeInput.value, 10) || 100;
   const startNum     = getStartNum();
-  const csvRows      = ['TeamNumber,TeamName,TeamTags,ImageFileName,TeamColor'];
+  const csvRows      = ['TeamNumber,TeamName,TeamShortName,ImageFileName,TeamColor'];
 
   const gCanvas = document.createElement('canvas');
   gCanvas.width = gCanvas.height = EXPORT_SIZE;
@@ -918,7 +920,9 @@ async function generatePack() {
 
     const cleanName = sanitizeFilename(c.name);
     const fileName  = `${num}-${cleanName}.png`;
-    csvRows.push(`${num},${c.name},${c.tag},${fileName},${c.color}`);
+    const color = c.color.replace('#', '') + 'FF';
+    const tag = c.tag || c.iso.toUpperCase();
+    csvRows.push(`${num},${c.name},${tag},${fileName},${color}`);
 
     const blob = await fetchImageAndDraw(c.iso, num, gCanvas, gCtx, EXPORT_SIZE);
     if (blob) iconFolder.file(fileName, blob, { binary: true });
