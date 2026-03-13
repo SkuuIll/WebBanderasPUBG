@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlagForge Studio | Editor Profesional de Banderas</title>
+  <meta name="description" content="Herramienta profesional para generar packs de banderas con números para overlays de stream. Exporta en ZIP listo para usar en CS2 Observer.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Apply theme before first paint to avoid flicker -->
+  <script>if(localStorage.getItem('flagforge_theme')==='light'){document.documentElement.classList.add('light');}</script>
+</head>
+<body>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">
+        <i data-lucide="flag"></i>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">FlagForge</span>
+        <span class="logo-sub">Studio Pro</span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="search-bar-wrap">
+        <i data-lucide="search" class="search-icon-svg"></i>
+        <input type="text" id="searchInput" class="global-search" placeholder="Buscar país, código ISO o continente..." autocomplete="off">
+        <span id="searchResultCount" class="search-result-count"></span>
+        <button id="btnClearSearch" class="clear-search-btn" title="Limpiar búsqueda">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="searchDropdown" class="search-dropdown hidden">
+        <div id="searchDropdownList" class="search-dropdown-list"></div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <div class="stat-chip">
+        <span class="stat-num" id="statNum">0</span>
+        <span class="stat-label">Seleccionados</span>
+      </div>
+      <button class="btn-icon" id="btnUndo" title="Deshacer última acción (Ctrl+Z)">
+        <i data-lucide="undo-2"></i>
+      </button>
+      <button class="btn-icon" id="btnRandomize" title="Agregar 5 banderas aleatorias">
+        <i data-lucide="dices"></i>
+      </button>
+      <button class="btn-icon" id="btnSelectAll" title="Seleccionar todos los visibles">
+        <i data-lucide="check-square"></i>
+      </button>
+      <button class="btn-icon danger" id="btnClearAll" title="Vaciar selección">
+        <i data-lucide="trash-2"></i>
+      </button>
+      <button class="btn-icon" id="btnShortcuts" title="Atajos de teclado">
+        <i data-lucide="keyboard"></i>
+      </button>
+      <div class="theme-toggle" id="themeToggle" title="Cambiar tema">
+        <i data-lucide="sun" id="themeIcon"></i>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <!-- Sidebar / Library -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title-row">
+          <i data-lucide="book-open" class="sidebar-icon"></i>
+          <h3>Librería</h3>
+        </div>
+        <div class="sidebar-header-right">
+          <div class="sidebar-count"><span id="visibleCount">0</span> países</div>
+          <div class="view-toggle">
+            <button class="view-btn active" id="btnListView" data-view="list" title="Vista lista">
+              <i data-lucide="list"></i>
+            </button>
+            <button class="view-btn" id="btnGridView" data-view="grid" title="Vista grilla">
+              <i data-lucide="layout-grid"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="filters">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="top">
+          <i data-lucide="star"></i>Populares
+        </button>
+        <button class="filter-btn" data-filter="hispanos">Hispanos</button>
+        <button class="filter-btn" data-filter="america">América</button>
+        <button class="filter-btn" data-filter="europa">Europa</button>
+        <button class="filter-btn" data-filter="asia">Asia</button>
+        <button class="filter-btn" data-filter="africa">África</button>
+        <button class="filter-btn" data-filter="oceania">Oceanía</button>
+      </div>
+
+      <div class="sort-bar">
+        <i data-lucide="arrow-up-down" class="sort-icon"></i>
+        <select id="sortSelect" class="sort-select">
+          <option value="alpha">A – Z</option>
+          <option value="alpha-desc">Z – A</option>
+          <option value="iso">Código ISO</option>
+        </select>
+      </div>
+
+      <div class="library-list" id="availableList"></div>
+
+      <div class="sidebar-footer">
+        <button class="btn-sm-primary" id="btnAddAll">
+          <i data-lucide="plus"></i>
+          Agregar todos visibles
+        </button>
+      </div>
+
+      <div class="sidebar-stats">
+        <div class="stat-mini"><span id="statTotalDb">0</span> total</div>
+        <div class="stat-mini stat-am"><span id="statAmerica">0</span> América</div>
+        <div class="stat-mini stat-eu"><span id="statEuropa">0</span> Europa</div>
+        <div class="stat-mini stat-as"><span id="statAsia">0</span> Asia</div>
+        <div class="stat-mini stat-af"><span id="statAfrica">0</span> África</div>
+        <div class="stat-mini stat-oc"><span id="statOceania">0</span> Oceanía</div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace">
+
+      <div class="workspace-header">
+        <h1 class="workspace-title">
+          <div class="title-badge"><i data-lucide="layout-panel-left"></i></div>
+          Vista Previa &amp; Exportación
+        </h1>
+        <div class="workspace-actions">
+          <button class="btn-outline" id="btnPreviewAll" disabled>
+            <i data-lucide="eye"></i> Vista general
+          </button>
+          <button class="btn-outline" id="btnExportCSV" disabled>
+            <i data-lucide="file-text"></i> Solo CSV
+          </button>
+          <button class="btn-outline" id="btnSaveRoster">
+            <i data-lucide="save"></i> Guardar
+          </button>
+          <label class="btn-outline" style="cursor:pointer;">
+            <i data-lucide="folder-open"></i> Cargar
+            <input type="file" id="btnLoadRoster" accept=".json" style="display:none">
+          </label>
+        </div>
+      </div>
+
+      <div class="workspace-content">
+
+        <!-- Preview Panel -->
+        <div class="preview-card">
+          <div class="preview-header">
+            <div class="card-label-row">
+              <i data-lucide="palette" class="card-icon"></i>
+              <span class="card-label">Vista Previa</span>
+            </div>
+            <div class="preview-nav">
+              <button class="nav-btn" id="btnPrevPreview" title="Anterior (←)">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <span id="previewIndex" class="preview-idx">–</span>
+              <button class="nav-btn" id="btnNextPreview" title="Siguiente (→)">
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="canvas-mount" id="canvasMountEl">
+            <canvas id="previewCanvas" width="200" height="200"></canvas>
+            <div id="canvasPlaceholder" class="canvas-placeholder">
+              <i data-lucide="flag" class="ph-icon-svg"></i>
+              <div class="ph-text">Seleccioná una bandera<br>para ver la vista previa</div>
+            </div>
+            <button id="btnCopyCanvas" class="canvas-copy-btn" title="Copiar imagen al portapapeles (Ctrl+C)">
+              <i data-lucide="clipboard"></i>
+            </button>
+          </div>
+
+          <div class="preview-country-name" id="previewCountryName">—</div>
+
+          <div class="controls-form">
+            <div class="form-section-title">
+              <i data-lucide="settings-2"></i>
+              Ajustes de Exportación
+              <button class="reset-btn" id="btnResetSettings" title="Restaurar valores por defecto">
+                <i data-lucide="rotate-ccw"></i> Reset
+              </button>
+            </div>
+
+            <div class="control-row">
+              <label>Presets Rápidos</label>
+              <div class="presets-row">
+                <button class="preset-chip" data-preset="gaming" title="Colores vibrantes, número grande">
+                  <i data-lucide="gamepad-2"></i> Gaming
+                </button>
+                <button class="preset-chip" data-preset="sport" title="Estilo deportivo clásico">
+                  <i data-lucide="trophy"></i> Sport
+                </button>
+                <button class="preset-chip" data-preset="clean" title="Minimalista y limpio">
+                  <i data-lucide="sparkles"></i> Clean
+                </button>
+                <button class="preset-chip" data-preset="retro" title="Estilo retro/pixel">
+                  <i data-lucide="tv"></i> Retro
+                </button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label for="exportSizeInput">Resolución (px)</label>
+              <div class="input-with-hint">
+                <input type="number" id="exportSizeInput" min="50" max="2000" value="100">
+                <div class="preset-btns">
+                  <button class="preset-btn" data-val="64">64</button>
+                  <button class="preset-btn" data-val="100">100</button>
+                  <button class="preset-btn" data-val="256">256</button>
+                  <button class="preset-btn" data-val="512">512</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label for="numberStart">
+                Número inicial
+                <span class="hint-text">El primer equipo tendrá este #</span>
+              </label>
+              <input type="number" id="numberStart" min="1" max="99" value="1">
+            </div>
+
+            <div class="control-row">
+              <label>Forma del Canvas</label>
+              <div class="shape-btns">
+                <button class="shape-btn active" data-shape="square" title="Cuadrado">
+                  <i data-lucide="square"></i>
+                </button>
+                <button class="shape-btn" data-shape="rounded" title="Redondeado">
+                  <i data-lucide="square" style="border-radius:4px;"></i>
+                </button>
+                <button class="shape-btn" data-shape="circle" title="Círculo">
+                  <i data-lucide="circle"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label for="bgColorInput">Fondo del canvas</label>
+              <div class="color-row">
+                <input type="color" id="bgColorInput" value="#000000">
+                <label class="toggle-switch" style="margin-left:4px;" title="Fondo transparente">
+                  <input type="checkbox" id="bgTransparent">
+                  <span class="toggle-slider"></span>
+                </label>
+                <span class="color-labels">Color · Transparente</span>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label for="sizeInput">
+                Tamaño Número <span class="val-badge" id="sizeValue">55%</span>
+              </label>
+              <input type="range" id="sizeInput" min="10" max="100" value="55" class="slider">
+            </div>
+
+            <div class="control-row">
+              <label for="strokeInput">
+                Grosor Contorno <span class="val-badge" id="strokeValue">10%</span>
+              </label>
+              <input type="range" id="strokeInput" min="0" max="20" value="10" class="slider">
+            </div>
+
+            <div class="control-row">
+              <label>Color del Número</label>
+              <div class="color-row">
+                <input type="color" id="numberColor" value="#FFFFFF">
+                <input type="color" id="strokeColor" value="#000000">
+                <span class="color-labels">Texto · Contorno</span>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label>Posición del Número</label>
+              <div class="position-grid">
+                <button class="pos-btn" data-pos="top-left">
+                  <i data-lucide="arrow-up-left"></i>
+                </button>
+                <button class="pos-btn" data-pos="top-center">
+                  <i data-lucide="arrow-up"></i>
+                </button>
+                <button class="pos-btn" data-pos="top-right">
+                  <i data-lucide="arrow-up-right"></i>
+                </button>
+                <button class="pos-btn" data-pos="center-left">
+                  <i data-lucide="arrow-left"></i>
+                </button>
+                <button class="pos-btn" data-pos="center">
+                  <i data-lucide="focus"></i>
+                </button>
+                <button class="pos-btn" data-pos="center-right">
+                  <i data-lucide="arrow-right"></i>
+                </button>
+                <button class="pos-btn" data-pos="bottom-left">
+                  <i data-lucide="arrow-down-left"></i>
+                </button>
+                <button class="pos-btn" data-pos="bottom-center">
+                  <i data-lucide="arrow-down"></i>
+                </button>
+                <button class="pos-btn" data-pos="bottom-right">
+                  <i data-lucide="arrow-down-right"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="control-row">
+              <label for="fontSelect">Fuente del Número</label>
+              <select id="fontSelect">
+                <option value="Arial Black">Arial Black (por defecto)</option>
+                <option value="Impact">Impact</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Verdana">Verdana</option>
+              </select>
+            </div>
+
+            <div class="control-row">
+              <label for="customText">Texto personalizado
+                <span class="hint-text">Dejar vacío para usar número</span>
+              </label>
+              <input type="text" id="customText" class="custom-text-input" placeholder="Ej: GG, WIN, etc..." maxlength="6">
+            </div>
+
+            <div class="control-row">
+              <label for="opacityInput">
+                Opacidad del Número <span class="val-badge" id="opacityValue">100%</span>
+              </label>
+              <input type="range" id="opacityInput" min="10" max="100" value="100" class="slider">
+            </div>
+
+            <div class="control-row control-row-inline">
+              <label for="shadowToggle">Sombra del número</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="shadowToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="control-row" id="shadowOptionsRow" style="display:none;">
+              <div class="color-row">
+                <input type="color" id="shadowColor" value="#000000">
+                <span class="color-labels">Color de sombra</span>
+              </div>
+            </div>
+
+            <div class="control-row control-row-inline">
+              <label for="showNumber">Mostrar número</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="showNumber" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="control-row control-row-inline">
+              <label for="squareFlag">Ajustar al cuadrado</label>
+              <label class="toggle-switch">
+                <input type="checkbox" id="squareFlag" checked>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Roster Panel -->
+        <div class="roster-card">
+          <div class="roster-header">
+            <div class="roster-title-group">
+              <i data-lucide="list" class="roster-icon"></i>
+              <h2 class="roster-title">Selección</h2>
+              <span class="roster-badge" id="totalCount">0</span>
+              <span class="drag-hint">
+                <i data-lucide="grip-vertical" style="width:11px;height:11px;"></i>
+                arrastrar para reordenar
+              </span>
+            </div>
+            <div class="roster-actions">
+              <button class="btn-outline-sm" id="btnShuffleRoster" title="Mezclar orden">
+                <i data-lucide="shuffle"></i> Mezclar
+              </button>
+              <button class="btn-outline-sm" id="btnSortRoster" title="Ordenar A–Z">
+                <i data-lucide="arrow-up-a-z"></i> A–Z
+              </button>
+              <button class="btn-outline-sm" id="btnDuplicateSel" title="Duplicar selección activa">
+                <i data-lucide="copy"></i> Duplicar
+              </button>
+              <button class="btn-outline-sm danger" id="btnClear">
+                <i data-lucide="trash-2"></i> Vaciar
+              </button>
+            </div>
+          </div>
+
+          <div class="roster-list" id="selectedList"></div>
+
+          <div class="export-footer">
+            <div class="export-options">
+              <div class="option-check">
+                <input type="checkbox" id="includeInstall" checked>
+                <label for="includeInstall">Incluir <code>instalar.bat</code></label>
+              </div>
+              <div class="option-check">
+                <input type="checkbox" id="includeCSV" checked>
+                <label for="includeCSV">Incluir <code>TeamInfo.csv</code></label>
+              </div>
+              <div class="option-check">
+                <input type="checkbox" id="includePreview" checked>
+                <label for="includePreview">Incluir preview HTML</label>
+              </div>
+            </div>
+
+            <div class="export-buttons">
+              <button id="btnPreviewExport" class="btn-secondary" disabled>
+                <i data-lucide="image"></i>
+                Vista previa ZIP
+              </button>
+              <button id="btnGenerate" class="btn-primary" disabled>
+                <i data-lucide="package"></i>
+                Empaquetar ZIP
+              </button>
+            </div>
+
+            <div id="progressContainer" class="progress-wrap hidden">
+              <div class="progress-header">
+                <span id="progressText">Generando...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div id="progressFill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Preview All Modal -->
+  <div id="previewModal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="eye"></i>
+          <h3>Vista General de Selección</h3>
+        </div>
+        <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="modalGrid"></div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="modal hidden">
+    <div class="modal-backdrop" id="shortcutsBackdrop"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="keyboard"></i>
+          <h3>Atajos de Teclado</h3>
+        </div>
+        <button class="modal-close" id="shortcutsClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcuts-grid">
+          <div class="shortcut-item"><div><kbd>←</kbd> <kbd>→</kbd></div><span>Navegar entre banderas</span></div>
+          <div class="shortcut-item"><div><kbd>Del</kbd></div><span>Eliminar bandera activa</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>Z</kbd></div><span>Deshacer última acción</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>C</kbd></div><span>Copiar preview al portapapeles</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>S</kbd></div><span>Guardar roster como JSON</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>E</kbd></div><span>Empaquetar ZIP</span></div>
+          <div class="shortcut-item"><div><kbd>Esc</kbd></div><span>Cerrar modal</span></div>
+          <div class="shortcut-item"><div><kbd>F</kbd></div><span>Enfocar búsqueda</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="db.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

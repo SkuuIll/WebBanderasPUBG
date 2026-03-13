@@ -1,0 +1,19 @@
+# Archivos ignorados por git
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporales
+*.tmp
+*.log
+
+# Node (por si acaso)
+node_modules/
