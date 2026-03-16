@@ -1878,7 +1878,7 @@ function loadShareFromUrl() {
 
 // ─── FILTER / SORT ───────────────────────────────────────────
 function processFilter(countries) {
-  const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const q = searchInput ? normalizeSearchText(searchInput.value) : '';
   return countries.filter(c => {
     // Different search fields for flags vs platforms
     const searchFields = currentMode === 'flags'
@@ -1886,7 +1886,7 @@ function processFilter(countries) {
       : [c.name, c.tag, c.category];
     
     const matchSearch = !q || searchFields.some(field => 
-      field && field.toLowerCase().includes(q)
+      normalizeSearchText(field).includes(q)
     );
     let matchTag = true;
     
@@ -1946,7 +1946,7 @@ function renderLibrary() {
   availableList.innerHTML = '';
   const filtered = getFiltered();
   visibleCount.textContent = filtered.length;
-  const q = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  const q = searchInput ? normalizeSearchText(searchInput.value) : '';
 
   if (!filtered.length) {
     const searchLabel = searchInput && searchInput.value ? searchInput.value : currentFilter;
@@ -1966,7 +1966,7 @@ function renderLibrary() {
     // Highlight search term in name
     let displayName = c.name;
     if (q) {
-      const idx = c.name.toLowerCase().indexOf(q);
+      const idx = normalizeSearchText(c.name).indexOf(q);
       if (idx >= 0) {
         displayName = c.name.slice(0, idx)
           + `<mark style="background:var(--primary-dim);color:var(--primary);border-radius:2px;">${c.name.slice(idx, idx + q.length)}</mark>`
@@ -2673,12 +2673,68 @@ function sanitizeFilename(name) {
     .replace(/\s+/g, '_');                // Espacios a guiones bajos
 }
 
+function normalizeSearchText(value) {
+  return (value || '')
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ñ/g, 'n').replace(/Ñ/g, 'N')
+    .toLowerCase()
+    .trim();
+}
+
 function shuffle(arr) {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
+}
+
+function buildSearchResults(rawQuery) {
+  const q = normalizeSearchText(rawQuery);
+  if (!q) return { q, matches: [] };
+
+  const matches = currentDB.map((c, idx) => {
+    const nameNorm = normalizeSearchText(c.name);
+    const tagNorm = normalizeSearchText(c.tag || '');
+    const isoNorm = normalizeSearchText(c.iso || '');
+
+    const nameIdx = nameNorm.indexOf(q);
+    const tagIdx = tagNorm.indexOf(q);
+    const isoIdx = isoNorm.indexOf(q);
+
+    const directName = nameIdx >= 0;
+    const directOther = !directName && (tagIdx >= 0 || isoIdx >= 0);
+
+    let metaMatch = false;
+    if (!directName && !directOther) {
+      if (currentMode === 'flags') {
+        metaMatch = Array.isArray(c.filters) && c.filters.some(f => normalizeSearchText(f).includes(q));
+      } else {
+        metaMatch = normalizeSearchText(c.category || '').includes(q);
+      }
+    }
+
+    if (!directName && !directOther && !metaMatch) return null;
+
+    const score = directName ? 3 : directOther ? 2 : 1;
+    const startsWith = nameIdx === 0 || tagIdx === 0 || isoIdx === 0;
+    const matchIdx = directName ? nameIdx : (tagIdx >= 0 ? tagIdx : (isoIdx >= 0 ? isoIdx : 999));
+
+    return { item: c, score, startsWith, matchIdx, nameIdx, idx };
+  }).filter(Boolean);
+
+  matches.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (a.startsWith !== b.startsWith) return a.startsWith ? -1 : 1;
+    if (a.matchIdx !== b.matchIdx) return a.matchIdx - b.matchIdx;
+    const nameCmp = a.item.name.localeCompare(b.item.name, undefined, { sensitivity: 'base' });
+    if (nameCmp !== 0) return nameCmp;
+    return a.idx - b.idx;
+  });
+
+  return { q, matches };
 }
 
 // ─── SEARCH DROPDOWN ─────────────────────────────────────────────────
@@ -2689,16 +2745,10 @@ function updateSearchDropdown() {
 
   clearTimeout(searchDebounceTimer2);
   searchDebounceTimer2 = setTimeout(() => {
-    const q = searchInput.value.toLowerCase().trim();
+    const { q, matches } = buildSearchResults(searchInput.value);
     if (!q) { closeSearchDropdown(); searchResultCount.textContent = ''; return; }
 
-    // Search across name, tag, and filters/category
-    const results = currentDB.filter(c => {
-      return c.name.toLowerCase().includes(q)
-          || c.tag.toLowerCase().includes(q)
-          || (currentMode === 'flags' && c.filters.some(f => f.toLowerCase().includes(q)))
-          || (currentMode === 'platforms' && c.category.toLowerCase().includes(q));
-    }).slice(0, 8);
+    const results = matches.slice(0, 8);
 
     searchResultCount.textContent = results.length > 0 ? results.length : '';
     searchDropdownIdx = -1;
@@ -2714,7 +2764,8 @@ function updateSearchDropdown() {
     }
 
     const frag = document.createDocumentFragment();
-    results.forEach((c, i) => {
+    results.forEach((match, i) => {
+      const c = match.item;
       const isSelected = selectedSlots.includes(c);
       const div = document.createElement('div');
       div.className = 'search-dropdown-item';
@@ -2724,7 +2775,7 @@ function updateSearchDropdown() {
 
       // Highlight match in name
       let dn = c.name;
-      const nameIdx = c.name.toLowerCase().indexOf(q);
+      const nameIdx = match.nameIdx;
       if (nameIdx >= 0) {
         dn = c.name.slice(0, nameIdx)
           + `<mark style="background:var(--primary-dim);color:var(--primary);border-radius:2px;">${c.name.slice(nameIdx, nameIdx + q.length)}</mark>`
@@ -2949,20 +3000,14 @@ function updateSearchModalResults() {
   
   clearTimeout(searchModalDebounceTimer);
   searchModalDebounceTimer = setTimeout(() => {
-    const q = searchModalInput.value.toLowerCase().trim();
+    const { q, matches } = buildSearchResults(searchModalInput.value);
     
     if (!q) {
       searchModalResults.innerHTML = '';
       return;
     }
     
-    // Search across name, tag, and filters/category
-    const results = currentDB.filter(c => {
-      return c.name.toLowerCase().includes(q)
-          || c.tag.toLowerCase().includes(q)
-          || (currentMode === 'flags' && c.filters.some(f => f.toLowerCase().includes(q)))
-          || (currentMode === 'platforms' && c.category.toLowerCase().includes(q));
-    }).slice(0, 20); // Show more results in modal
+    const results = matches.slice(0, 20); // Show more results in modal
     
     if (!results.length) {
       searchModalResults.innerHTML = '';
@@ -2974,14 +3019,15 @@ function updateSearchModalResults() {
     }
     
     const frag = document.createDocumentFragment();
-    results.forEach((c) => {
+    results.forEach((match) => {
+      const c = match.item;
       const isSelected = selectedSlots.includes(c);
       const div = document.createElement('div');
       div.className = `item-card ${isSelected ? 'selected' : ''}`;
       
       // Highlight match in name
       let displayName = c.name;
-      const nameIdx = c.name.toLowerCase().indexOf(q);
+      const nameIdx = match.nameIdx;
       if (nameIdx >= 0) {
         displayName = c.name.slice(0, nameIdx)
           + `<mark style="background:var(--primary-dim);color:var(--primary);border-radius:2px;">${c.name.slice(nameIdx, nameIdx + q.length)}</mark>`
