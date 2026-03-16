@@ -21,6 +21,18 @@ const platformsDB = [
   { tag: 'mastodon', name: 'Mastodon', category: 'Social', color: '#6364FF', logoUrl: 'https://cdn.simpleicons.org/mastodon/FFFFFF' },
   { tag: 'threads', name: 'Threads', category: 'Social', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/threads/FFFFFF' },
   { tag: 'bluesky', name: 'Bluesky', category: 'Social', color: '#1185FE', logoUrl: 'https://cdn.simpleicons.org/bluesky/FFFFFF' },
+  { tag: 'messenger', name: 'Messenger', category: 'Social', color: '#00B2FF', logoUrl: 'https://cdn.simpleicons.org/messenger/FFFFFF' },
+  { tag: 'wechat', name: 'WeChat', category: 'Social', color: '#07C160', logoUrl: 'https://cdn.simpleicons.org/wechat/FFFFFF' },
+  { tag: 'line', name: 'LINE', category: 'Social', color: '#06C755', logoUrl: 'https://cdn.simpleicons.org/line/FFFFFF' },
+  { tag: 'viber', name: 'Viber', category: 'Social', color: '#7360F2', logoUrl: 'https://cdn.simpleicons.org/viber/FFFFFF' },
+  { tag: 'signal', name: 'Signal', category: 'Social', color: '#3A76F0', logoUrl: 'https://cdn.simpleicons.org/signal/FFFFFF' },
+  { tag: 'kakaotalk', name: 'KakaoTalk', category: 'Social', color: '#FFCD00', logoUrl: 'https://cdn.simpleicons.org/kakaotalk/000000' },
+  { tag: 'qq', name: 'QQ', category: 'Social', color: '#12B7F5', logoUrl: 'https://cdn.simpleicons.org/tencentqq/FFFFFF' },
+  { tag: 'weibo', name: 'Weibo', category: 'Social', color: '#E6162D', logoUrl: 'https://cdn.simpleicons.org/sinaweibo/FFFFFF' },
+  { tag: 'vk', name: 'VK', category: 'Social', color: '#0077FF', logoUrl: 'https://cdn.simpleicons.org/vk/FFFFFF' },
+  { tag: 'odnoklassniki', name: 'Odnoklassniki', category: 'Social', color: '#EE8208', logoUrl: 'https://cdn.simpleicons.org/odnoklassniki/FFFFFF' },
+  { tag: 'behance', name: 'Behance', category: 'Social', color: '#1769FF', logoUrl: 'https://cdn.simpleicons.org/behance/FFFFFF' },
+  { tag: 'dribbble', name: 'Dribbble', category: 'Social', color: '#EA4C89', logoUrl: 'https://cdn.simpleicons.org/dribbble/FFFFFF' },
   
   // ─── STREAMING VIDEO ──────────────────────────────────────────
   { tag: 'youtube', name: 'YouTube', category: 'Streaming', color: '#FF0000', logoUrl: 'https://cdn.simpleicons.org/youtube/FFFFFF' },
@@ -59,6 +71,17 @@ const platformsDB = [
   { tag: 'ea', name: 'EA Games', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/ea/FFFFFF' },
   { tag: 'ubisoft', name: 'Ubisoft', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/ubisoft/FFFFFF' },
   { tag: 'blizzard', name: 'Blizzard', category: 'Gaming', color: '#148EFF', logoUrl: 'https://cdn.simpleicons.org/blizzardentertainment/FFFFFF' },
+  { tag: 'battlenet', name: 'Battle.net', category: 'Gaming', color: '#00AEFF', logoUrl: 'https://cdn.simpleicons.org/battledotnet/FFFFFF' },
+  { tag: 'gog', name: 'GOG', category: 'Gaming', color: '#86328A', logoUrl: 'https://cdn.simpleicons.org/gogdotcom/FFFFFF' },
+  { tag: 'itchio', name: 'itch.io', category: 'Gaming', color: '#FA5C5C', logoUrl: 'https://cdn.simpleicons.org/itchdotio/FFFFFF' },
+  { tag: 'roblox', name: 'Roblox', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/roblox/FFFFFF' },
+  { tag: 'minecraft', name: 'Minecraft', category: 'Gaming', color: '#62B47A', logoUrl: 'https://cdn.simpleicons.org/minecraft/FFFFFF' },
+  { tag: 'fortnite', name: 'Fortnite', category: 'Gaming', color: '#5C2D91', logoUrl: 'https://cdn.simpleicons.org/fortnite/FFFFFF' },
+  { tag: 'valorant', name: 'Valorant', category: 'Gaming', color: '#FA4454', logoUrl: 'https://cdn.simpleicons.org/valorant/FFFFFF' },
+  { tag: 'leagueoflegends', name: 'League of Legends', category: 'Gaming', color: '#C28F2C', logoUrl: 'https://cdn.simpleicons.org/leagueoflegends/FFFFFF' },
+  { tag: 'dota2', name: 'Dota 2', category: 'Gaming', color: '#BF2B2B', logoUrl: 'https://cdn.simpleicons.org/dota2/FFFFFF' },
+  { tag: 'pubg', name: 'PUBG', category: 'Gaming', color: '#F2A900', logoUrl: 'https://cdn.simpleicons.org/pubg/000000' },
+  { tag: 'apexlegends', name: 'Apex Legends', category: 'Gaming', color: '#DA292A', logoUrl: 'https://cdn.simpleicons.org/apexlegends/FFFFFF' },
   
   // ─── TECNOLOGÍA ───────────────────────────────────────────────
   { tag: 'google', name: 'Google', category: 'Tech', color: '#4285F4', logoUrl: 'https://cdn.simpleicons.org/google/FFFFFF' },
@@ -151,7 +174,11 @@ const platformsDB = [
 // Agregar filtros automáticamente basados en categoría
 platformsDB.forEach(platform => {
   platform.filters = [platform.category];
-  if (['facebook', 'instagram', 'twitter', 'x', 'tiktok', 'youtube', 'twitch', 'netflix', 'spotify', 'discord'].includes(platform.tag)) {
+  if ([
+    'facebook', 'instagram', 'twitter', 'x', 'tiktok', 'youtube', 'twitch', 'netflix', 'spotify', 'discord',
+    'whatsapp', 'messenger', 'wechat', 'line', 'snapchat', 'reddit',
+    'steam', 'playstation', 'xbox', 'nintendo', 'epicgames', 'riotgames', 'roblox', 'minecraft', 'fortnite'
+  ].includes(platform.tag)) {
     platform.filters.push('top');
   }
 });

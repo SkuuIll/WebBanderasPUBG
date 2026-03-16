@@ -177,8 +177,10 @@ const PLATFORM_LOGO_MAP = {
 
 function getPlatformLogoUrl(platform) {
   const slug = PLATFORM_LOGO_MAP[platform.tag] || platform.tag;
-  const primary = `https://www.vectorlogo.zone/logos/${slug}/${slug}-icon.svg`;
-  return { primary, fallback: '' };
+  const base = platform.logoUrl || `https://cdn.simpleicons.org/${slug}/FFFFFF`;
+  const primary = base.replace(/\/[0-9a-fA-F]{3,6}$/, '/FFFFFF');
+  const fallback = `https://www.vectorlogo.zone/logos/${slug}/${slug}-icon.svg`;
+  return { primary, fallback };
 }
 
 function checkImageLoad(url, timeoutMs = 5000) {
