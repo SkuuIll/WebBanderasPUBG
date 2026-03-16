@@ -221,11 +221,11 @@ async function ensurePlatformSupport() {
 }
 
 // Apply flag style effects to canvas
-function applyFlagStyleToCanvas(context, img, S) {
+function applyFlagStyleToCanvas(context, img, S, item) {
   // The only supported styles are 'realistic' and 'square'.
   // The visual difference comes from the image source (see getFlagUrl).
   context.clearRect(0, 0, S, S);
-  drawFlagContain(context, img, S);
+  drawFlagContain(context, img, S, item);
 }
 
 // ─── DEVICE DETECTION ────────────────────────────────────────
@@ -1394,10 +1394,11 @@ function refreshPreview() {
 }
 
 // ── Draw flag using CONTAIN (letterbox) – no cropping ────────
-function drawFlagContain(context, img, S) {
+function drawFlagContain(context, img, S, item) {
   // Fill background first
   if (!bgTransparent.checked) {
-    context.fillStyle = bgColorInput.value || '#000000';
+    const usePlatformColor = currentMode === 'platforms' && item && item.color;
+    context.fillStyle = usePlatformColor ? item.color : (bgColorInput.value || '#000000');
     context.fillRect(0, 0, S, S);
   } else {
     context.clearRect(0, 0, S, S);
@@ -1521,7 +1522,7 @@ function updatePreview(country, number) {
     ctx.clearRect(0, 0, S, S);
     
     // Apply flag style effects
-    applyFlagStyleToCanvas(ctx, img, S);
+    applyFlagStyleToCanvas(ctx, img, S, country);
     
     drawBadgeOnCanvas(ctx, String(number), S);
     return;
@@ -1551,7 +1552,7 @@ function updatePreview(country, number) {
     ctx.clearRect(0, 0, S, S);
     
     // Apply flag style effects
-    applyFlagStyleToCanvas(ctx, img, S);
+    applyFlagStyleToCanvas(ctx, img, S, country);
     
     drawBadgeOnCanvas(ctx, String(number), S);
   };
@@ -1755,7 +1756,10 @@ function generatePreviewHtml() {
     const imgSrc = currentMode === 'flags'
       ? `https://flagcdn.com/w80/${c.iso}.png`
       : getPlatformLogoUrl(c).primary;
-    return `<div class="item"><img src="${imgSrc}"><span class="n">${i+startNum}</span><span class="nm">${c.name}</span></div>`;
+    const imgStyle = currentMode === 'platforms'
+      ? ` style="background:${c.color};padding:6px;border-radius:6px;"`
+      : '';
+    return `<div class="item"><img src="${imgSrc}"${imgStyle}><span class="n">${i+startNum}</span><span class="nm">${c.name}</span></div>`;
   }).join('');
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview FlagForge</title><style>body{background:#0d1117;color:#e6edf3;font-family:system-ui;display:flex;flex-wrap:wrap;gap:10px;padding:20px;}.item{display:flex;flex-direction:column;align-items:center;gap:4px;background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px;width:120px;}img{width:80px;height:54px;object-fit:contain;border-radius:4px;background:#000;}.n{font-weight:800;color:#2f81f7;font-size:1.1rem;}.nm{font-size:.7rem;color:#8b949e;text-align:center;}</style></head><body>${items}</body></html>`;
 }
@@ -1780,7 +1784,7 @@ function fetchImageAndDraw(item, number, can, ctx2d, S) {
       ctx2d.clearRect(0, 0, S, S);
       
       // Apply flag style effects using the same function as preview
-      applyFlagStyleToCanvas(ctx2d, img, S);
+      applyFlagStyleToCanvas(ctx2d, img, S, item);
       
       if (showNumber.checked) drawBadgeOnCanvas(ctx2d, String(number), S);
       can.toBlob(blob => resolve(blob), 'image/png');
