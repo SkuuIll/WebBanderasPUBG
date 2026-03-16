@@ -41,32 +41,70 @@ El archivo `instalar.bat` que se incluye en el ZIP **automatiza toda la instalac
 
 ```bat
 @echo off
+setlocal EnableExtensions
 chcp 65001 > nul
 echo =======================================
 echo  FlagForge Studio - Instalando Banderas
 echo =======================================
-xcopy /s /e /y "Observer" "..\Observer\"
+
+set "SCRIPT_DIR=%~dp0"
+set "SRC=%SCRIPT_DIR%Observer"
+set "SAVED=%LOCALAPPDATA%\TslGame\Saved"
+set "DST=%SAVED%\Observer"
+
+if not exist "%SRC%\*" (
+  echo  ERROR: No se encontro la carpeta "Observer" junto a instalar.bat
+  echo  Asegurate de descomprimir el ZIP completo.
+  pause
+  exit /b 1
+)
+
+if not exist "%SAVED%" (
+  echo  ERROR: No se encontro la carpeta de PUBG:
+  echo  %SAVED%
+  echo  Ejecuta PUBG al menos una vez para que se cree.
+  pause
+  exit /b 1
+)
+
+if exist "%DST%" (
+  echo  Eliminando instalacion previa...
+  rd /s /q "%DST%"
+)
+
+echo  Copiando nuevas banderas...
+xcopy /E /I /Y "%SRC%" "%DST%\" > nul
+if errorlevel 1 (
+  echo  ERROR: Fallo la copia de archivos.
+  pause
+  exit /b 1
+)
+
 echo.
 echo  Instalacion completada con exito!
+echo  Destino: %DST%
 pause
 ```
 
 ### Paso a paso:
 
-1. **Establece codificación UTF-8** (`chcp 65001`) para que los nombres con acentos (ñ, á, é, etc.) se copien correctamente
-2. **Copia la carpeta `Observer`** (con las imágenes y el CSV) al directorio padre. **Esto significa que tenés que descomprimir el ZIP dentro de la carpeta `Saved` de PUBG** para que funcione:
-   ```
-   C:\Users\TuUsuario\AppData\Local\TslGame\Saved\
-   └── (descomprimí el ZIP acá)
-       ├── instalar.bat    ← ejecutá esto
-       └── Observer\
-           ├── TeamInfo.csv
-           └── TeamIcon\
-               ├── 1-Argentina.png
-               ├── 2-Brasil.png
-               └── ...
-   ```
-3. Al ejecutar `instalar.bat`, copia `Observer/` a `../Observer/`, que queda en la ubicación correcta: `Saved\Observer\`
+1. **Establece codificación UTF-8** (`chcp 65001`) para que los nombres con acentos se copien correctamente
+2. **Define origen y destino**: origen `Observer` junto a `instalar.bat`, destino `%LOCALAPPDATA%\TslGame\Saved\Observer`
+3. **Verifica precondiciones**: que exista `Observer` y que exista la carpeta `Saved` de PUBG
+4. **Si hay instalacion previa**, elimina `Saved\Observer` y la reemplaza
+5. **Copia los archivos** desde el ZIP hacia `%LOCALAPPDATA%\TslGame\Saved\Observer`
+
+Ejemplo de estructura desde donde podes ejecutar el `.bat` (cualquier ubicacion):
+```
+C:\MiCarpeta\RosterBanderas\
+├── instalar.bat
+└── Observer\
+    ├── TeamInfo.csv
+    └── TeamIcon\
+```
+
+Destino final:
+`%LOCALAPPDATA%\TslGame\Saved\Observer`
 
 ### Instalación Manual (alternativa)
 
@@ -107,8 +145,8 @@ Si preferís no usar el `.bat`, simplemente:
 2. Seleccioná los países desde la librería de la izquierda
 3. Ajustá el estilo (o usá un preset como "Gaming")
 4. Hacé click en **Empaquetar ZIP**
-5. Descomprimí el ZIP en `%LOCALAPPDATA%\TslGame\Saved\`
-6. Ejecutá `instalar.bat`
+5. Descomprimí el ZIP en cualquier carpeta (manteniendo `instalar.bat` junto a `Observer`)
+6. Ejecutá `instalar.bat` (instala en `%LOCALAPPDATA%\TslGame\Saved\Observer`)
 7. Abrí PUBG en modo Observer → las banderas aparecen en el killfeed 🎉
 
 ## Atajos de Teclado

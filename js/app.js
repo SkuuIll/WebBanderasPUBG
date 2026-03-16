@@ -2595,22 +2595,46 @@ async function generatePack() {
   }
 }
 
-function generateBat() {
-  return `@echo off\n` +
-         `chcp 65001 > nul\n` +
-         `echo =======================================\n` +
-         `echo  FlagForge Studio - Instalando Banderas\n` +
-         `echo =======================================\n\n` +
-         `echo  [1/3] Limpiando instalacion previa...\n` +
-         `if exist "..\\Observer" rd /s /q "..\\Observer"\n\n` +
-         `echo  [2/3] Copiando nuevas banderas...\n` +
-         `xcopy /s /e /y "Observer" "..\\Observer\\"\n\n` +
-         `echo  [3/3] Limpiando archivos temporales...\n` +
-         `rd /s /q "Observer"\n\n` +
-         `echo.\n` +
-         `echo  Instalacion completada con exito!\n` +
-         `pause\n`;
-}
+  function generateBat() {
+    return `@echo off\n` +
+           `setlocal EnableExtensions\n` +
+           `chcp 65001 > nul\n` +
+           `echo =======================================\n` +
+           `echo  FlagForge Studio - Instalando Banderas\n` +
+           `echo =======================================\n\n` +
+           `set "SCRIPT_DIR=%~dp0"\n` +
+           `set "SRC=%SCRIPT_DIR%Observer"\n` +
+           `set "SAVED=%LOCALAPPDATA%\\TslGame\\Saved"\n` +
+           `set "DST=%SAVED%\\Observer"\n\n` +
+           `if not exist "%SRC%\\*" (\n` +
+           `  echo  ERROR: No se encontro la carpeta "Observer" junto a instalar.bat\n` +
+           `  echo  Asegurate de descomprimir el ZIP completo.\n` +
+           `  pause\n` +
+           `  exit /b 1\n` +
+           `)\n\n` +
+           `if not exist "%SAVED%" (\n` +
+           `  echo  ERROR: No se encontro la carpeta de PUBG:\n` +
+           `  echo  %SAVED%\n` +
+           `  echo  Ejecuta PUBG al menos una vez para que se cree.\n` +
+           `  pause\n` +
+           `  exit /b 1\n` +
+           `)\n\n` +
+           `if exist "%DST%" (\n` +
+           `  echo  Eliminando instalacion previa...\n` +
+           `  rd /s /q "%DST%"\n` +
+           `)\n\n` +
+           `echo  Copiando nuevas banderas...\n` +
+           `xcopy /E /I /Y "%SRC%" "%DST%\\" > nul\n` +
+           `if errorlevel 1 (\n` +
+           `  echo  ERROR: Fallo la copia de archivos.\n` +
+           `  pause\n` +
+           `  exit /b 1\n` +
+           `)\n\n` +
+           `echo.\n` +
+           `echo  Instalacion completada con exito!\n` +
+           `echo  Destino: %DST%\n` +
+           `pause\n`;
+  }
 
 function generatePreviewHtml() {
   const startNum = getStartNum();
