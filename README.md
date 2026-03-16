@@ -82,10 +82,12 @@ Si preferís no usar el `.bat`, simplemente:
 
 ## Características
 
-- 📚 **205 países** con banderas reales via FlagCDN
+- 📚 **200+ países** con banderas reales via FlagCDN
+- 🏆 **Filtros especializados** — PUBG Esports Top 20, Banderas Icónicas, Populares
 - 🔍 **Buscador con autocomplete** — dropdown con preview de banderas, búsqueda por nombre, ISO o continente
 - 🎨 **Vista previa en tiempo real** con canvas dinámico
-- 🎮 **Presets rápidos** — Gaming, Sport, Clean, Retro con un click
+- 🎮 **Presets rápidos** — Gaming, Esports Pro, Sport, Clean, Retro con un click
+- 🔤 **Fuentes gaming-style** — Bebas Neue, Anton, Teko, Bungee (inspiradas en Refrigerator Deluxe)
 - ✏️ **Texto personalizado** — podés poner texto custom en vez del número
 - 🔢 **Badges de número configurables** — posición, tamaño, fuente, color, opacidad, sombra, forma
 - 🖼 **Modo Contain** — bandera completa sin recortes, con fondo personalizable o transparente
@@ -97,7 +99,7 @@ Si preferís no usar el `.bat`, simplemente:
 - ⌨️ **Atajos de teclado** completos
 - 📦 **Exportar ZIP** con imágenes PNG + `TeamInfo.csv` + `instalar.bat` + preview HTML
 - 🌙 **Tema oscuro/claro** sin parpadeo (FOUC-free)
-- 📈 **Estadísticas** por continente en la sidebar
+- 🎯 **Soporte hasta 105 equipos** — PUBG puede asignar números >100 en Solos
 
 ## Uso Rápido
 
@@ -145,6 +147,25 @@ RosterBanderas_FlagForge.zip
 - [JSZip](https://stuk.github.io/jszip/) — generación de ZIP en el browser
 - [Lucide Icons](https://lucide.dev/) — iconografía SVG
 - [FlagCDN](https://flagcdn.com/) — imágenes de banderas
+- [Google Fonts](https://fonts.google.com/) — Fuentes gaming-style (Bebas Neue, Anton, Teko, Bungee)
+
+## Inspiración y Créditos
+
+Este proyecto fue inspirado por:
+- [pubg-flagfeed](https://github.com/nitnat/pubg-flagfeed) por n1tn4t — Idea original de banderas numeradas para PUBG
+- [FlagWhiz](https://flagwhiz.com/) — Lógica de reconocimiento de banderas
+- Refrigerator Deluxe Font por Mark Simonson Studio — Inspiración para fuentes gaming-style
+
+## ¿Por qué FlagForge Studio?
+
+### vs. Packs Pre-hechos (como pubg-flagfeed)
+✅ **Personalización total** — Elegí exactamente qué banderas querés  
+✅ **Vista previa en tiempo real** — Ves cómo queda antes de exportar  
+✅ **Números configurables** — Posición, tamaño, color, fuente  
+✅ **Plataformas sociales** — No solo banderas, también logos de Twitch, Discord, etc.  
+✅ **Siempre actualizado** — Banderas desde FlagCDN, siempre la última versión  
+✅ **Filtros especializados** — PUBG Esports Top 20, Banderas Icónicas  
+✅ **Fuentes profesionales** — Gaming-style fonts para máxima legibilidad
 
 ## Licencia
 
