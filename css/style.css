@@ -938,9 +938,12 @@ body.platforms-mode:not(.light) .library-list .item-card.selected {
   box-shadow: 0 4px 15px rgba(14, 165, 233, 0.35);
 }
 .title-badge [data-lucide] { width: 20px; height: 20px; }
-.workspace-actions { 
+.workspace-actions,
+.roster-actions { 
   display: flex; 
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -969,6 +972,12 @@ body.platforms-mode:not(.light) .library-list .item-card.selected {
   background: var(--bg-hover); 
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
+}
+.btn-outline.danger:hover { 
+  background: var(--danger-dim); 
+  color: var(--danger); 
+  border-color: var(--danger);
+  box-shadow: 0 4px 12px rgba(253, 164, 175, 0.3);
 }
 .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -1413,12 +1422,7 @@ body.platforms-mode:not(.light) .library-list .item-card.selected {
   min-width: 26px;
   text-align: center;
 }
-.roster-actions { 
-  display: flex; 
-  gap: 6px; 
-  flex-wrap: wrap;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+
 
 .roster-list {
   flex: 1;
