@@ -149,13 +149,6 @@ RosterBanderas_FlagForge.zip
 - [FlagCDN](https://flagcdn.com/) — imágenes de banderas
 - [Google Fonts](https://fonts.google.com/) — Fuentes gaming-style (Bebas Neue, Anton, Teko, Bungee)
 
-## Inspiración y Créditos
-
-Este proyecto fue inspirado por:
-- [pubg-flagfeed](https://github.com/nitnat/pubg-flagfeed) por n1tn4t — Idea original de banderas numeradas para PUBG
-- [FlagWhiz](https://flagwhiz.com/) — Lógica de reconocimiento de banderas
-- Refrigerator Deluxe Font por Mark Simonson Studio — Inspiración para fuentes gaming-style
-
 ## ¿Por qué FlagForge Studio?
 
 ### vs. Packs Pre-hechos (como pubg-flagfeed)
