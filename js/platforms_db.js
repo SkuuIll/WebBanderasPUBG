@@ -33,6 +33,20 @@ const platformsDB = [
   { tag: 'odnoklassniki', name: 'Odnoklassniki', category: 'Social', color: '#EE8208', logoUrl: 'https://cdn.simpleicons.org/odnoklassniki/FFFFFF' },
   { tag: 'behance', name: 'Behance', category: 'Social', color: '#1769FF', logoUrl: 'https://cdn.simpleicons.org/behance/FFFFFF' },
   { tag: 'dribbble', name: 'Dribbble', category: 'Social', color: '#EA4C89', logoUrl: 'https://cdn.simpleicons.org/dribbble/FFFFFF' },
+  { tag: 'flickr', name: 'Flickr', category: 'Social', color: '#0063DC', logoUrl: 'https://cdn.simpleicons.org/flickr/FFFFFF' },
+  { tag: 'quora', name: 'Quora', category: 'Social', color: '#B92B27', logoUrl: 'https://cdn.simpleicons.org/quora/FFFFFF' },
+  { tag: 'deviantart', name: 'DeviantArt', category: 'Social', color: '#05CC47', logoUrl: 'https://cdn.simpleicons.org/deviantart/FFFFFF' },
+  { tag: 'imgur', name: 'Imgur', category: 'Social', color: '#1BB76E', logoUrl: 'https://cdn.simpleicons.org/imgur/FFFFFF' },
+  { tag: 'meetup', name: 'Meetup', category: 'Social', color: '#ED1C40', logoUrl: 'https://cdn.simpleicons.org/meetup/FFFFFF' },
+  { tag: 'nextdoor', name: 'Nextdoor', category: 'Social', color: '#8ED500', logoUrl: 'https://cdn.simpleicons.org/nextdoor/FFFFFF' },
+  { tag: 'strava', name: 'Strava', category: 'Social', color: '#FC4C02', logoUrl: 'https://cdn.simpleicons.org/strava/FFFFFF' },
+  { tag: 'yelp', name: 'Yelp', category: 'Social', color: '#FF1A1A', logoUrl: 'https://cdn.simpleicons.org/yelp/FFFFFF' },
+  { tag: 'clubhouse', name: 'Clubhouse', category: 'Social', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/clubhouse/FFFFFF' },
+  { tag: 'patreon', name: 'Patreon', category: 'Social', color: '#FF424D', logoUrl: 'https://cdn.simpleicons.org/patreon/FFFFFF' },
+  { tag: 'kofi', name: 'Ko-fi', category: 'Social', color: '#29ABE0', logoUrl: 'https://cdn.simpleicons.org/kofi/FFFFFF' },
+  { tag: 'buymeacoffee', name: 'Buy Me a Coffee', category: 'Social', color: '#FFDD00', logoUrl: 'https://cdn.simpleicons.org/buymeacoffee/000000' },
+  { tag: 'discourse', name: 'Discourse', category: 'Social', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/discourse/FFFFFF' },
+  { tag: 'disqus', name: 'Disqus', category: 'Social', color: '#2E9FFF', logoUrl: 'https://cdn.simpleicons.org/disqus/FFFFFF' },
   
   // ─── STREAMING VIDEO ──────────────────────────────────────────
   { tag: 'youtube', name: 'YouTube', category: 'Streaming', color: '#FF0000', logoUrl: 'https://cdn.simpleicons.org/youtube/FFFFFF' },
@@ -82,6 +96,35 @@ const platformsDB = [
   { tag: 'dota2', name: 'Dota 2', category: 'Gaming', color: '#BF2B2B', logoUrl: 'https://cdn.simpleicons.org/dota2/FFFFFF' },
   { tag: 'pubg', name: 'PUBG', category: 'Gaming', color: '#F2A900', logoUrl: 'https://cdn.simpleicons.org/pubg/000000' },
   { tag: 'apexlegends', name: 'Apex Legends', category: 'Gaming', color: '#DA292A', logoUrl: 'https://cdn.simpleicons.org/apexlegends/FFFFFF' },
+  { tag: 'origin', name: 'Origin', category: 'Gaming', color: '#F56C2D', logoUrl: 'https://cdn.simpleicons.org/origin/FFFFFF' },
+  { tag: 'unity', name: 'Unity', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/unity/FFFFFF' },
+  { tag: 'unrealengine', name: 'Unreal Engine', category: 'Gaming', color: '#0E1128', logoUrl: 'https://cdn.simpleicons.org/unrealengine/FFFFFF' },
+  { tag: 'godotengine', name: 'Godot', category: 'Gaming', color: '#478CBF', logoUrl: 'https://cdn.simpleicons.org/godotengine/FFFFFF' },
+  { tag: 'bethesda', name: 'Bethesda', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/bethesda/FFFFFF' },
+  { tag: 'capcom', name: 'Capcom', category: 'Gaming', color: '#0046A5', logoUrl: 'https://cdn.simpleicons.org/capcom/FFFFFF' },
+  { tag: 'squareenix', name: 'Square Enix', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/squareenix/FFFFFF' },
+  { tag: 'bandainamco', name: 'Bandai Namco', category: 'Gaming', color: '#F9A01B', logoUrl: 'https://cdn.simpleicons.org/bandainamco/FFFFFF' },
+  { tag: 'konami', name: 'Konami', category: 'Gaming', color: '#C01818', logoUrl: 'https://cdn.simpleicons.org/konami/FFFFFF' },
+  { tag: 'sega', name: 'SEGA', category: 'Gaming', color: '#0089CF', logoUrl: 'https://cdn.simpleicons.org/sega/FFFFFF' },
+  { tag: 'activision', name: 'Activision', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/activision/FFFFFF' },
+  { tag: 'tencentgames', name: 'Tencent Games', category: 'Gaming', color: '#00A1E9', logoUrl: 'https://cdn.simpleicons.org/tencentgames/FFFFFF' },
+  { tag: 'garena', name: 'Garena', category: 'Gaming', color: '#E41F1B', logoUrl: 'https://cdn.simpleicons.org/garena/FFFFFF' },
+  { tag: 'supercell', name: 'Supercell', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/supercell/FFFFFF' },
+  { tag: 'overwatch', name: 'Overwatch', category: 'Gaming', color: '#F99E1A', logoUrl: 'https://cdn.simpleicons.org/overwatch/FFFFFF' },
+  { tag: 'hearthstone', name: 'Hearthstone', category: 'Gaming', color: '#8B5A2B', logoUrl: 'https://cdn.simpleicons.org/hearthstone/FFFFFF' },
+  { tag: 'diablo', name: 'Diablo', category: 'Gaming', color: '#B71C1C', logoUrl: 'https://cdn.simpleicons.org/diablo/FFFFFF' },
+  { tag: 'starcraft', name: 'StarCraft', category: 'Gaming', color: '#0B4D8C', logoUrl: 'https://cdn.simpleicons.org/starcraft/FFFFFF' },
+  { tag: 'worldofwarcraft', name: 'World of Warcraft', category: 'Gaming', color: '#0E7AC4', logoUrl: 'https://cdn.simpleicons.org/worldofwarcraft/FFFFFF' },
+  { tag: 'callofduty', name: 'Call of Duty', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/callofduty/FFFFFF' },
+  { tag: 'battlefield', name: 'Battlefield', category: 'Gaming', color: '#0055AA', logoUrl: 'https://cdn.simpleicons.org/battlefield/FFFFFF' },
+  { tag: 'fifa', name: 'FIFA', category: 'Gaming', color: '#1E5AA8', logoUrl: 'https://cdn.simpleicons.org/fifa/FFFFFF' },
+  { tag: 'rocketleague', name: 'Rocket League', category: 'Gaming', color: '#0065FF', logoUrl: 'https://cdn.simpleicons.org/rocketleague/FFFFFF' },
+  { tag: 'rainbowsix', name: 'Rainbow Six Siege', category: 'Gaming', color: '#000000', logoUrl: 'https://cdn.simpleicons.org/rainbowsixsiege/FFFFFF' },
+  { tag: 'counterstrike', name: 'Counter-Strike', category: 'Gaming', color: '#F2A900', logoUrl: 'https://cdn.simpleicons.org/counterstrike/FFFFFF' },
+  { tag: 'cs2', name: 'CS2', category: 'Gaming', color: '#F2A900', logoUrl: 'https://cdn.simpleicons.org/counterstrike/FFFFFF' },
+  { tag: 'amongus', name: 'Among Us', category: 'Gaming', color: '#C91616', logoUrl: 'https://cdn.simpleicons.org/amongus/FFFFFF' },
+  { tag: 'fallguys', name: 'Fall Guys', category: 'Gaming', color: '#F1A4D0', logoUrl: 'https://cdn.simpleicons.org/fallguys/000000' },
+  { tag: 'genshinimpact', name: 'Genshin Impact', category: 'Gaming', color: '#2F8CFF', logoUrl: 'https://cdn.simpleicons.org/genshinimpact/FFFFFF' },
   
   // ─── TECNOLOGÍA ───────────────────────────────────────────────
   { tag: 'google', name: 'Google', category: 'Tech', color: '#4285F4', logoUrl: 'https://cdn.simpleicons.org/google/FFFFFF' },
@@ -176,8 +219,9 @@ platformsDB.forEach(platform => {
   platform.filters = [platform.category];
   if ([
     'facebook', 'instagram', 'twitter', 'x', 'tiktok', 'youtube', 'twitch', 'netflix', 'spotify', 'discord',
-    'whatsapp', 'messenger', 'wechat', 'line', 'snapchat', 'reddit',
-    'steam', 'playstation', 'xbox', 'nintendo', 'epicgames', 'riotgames', 'roblox', 'minecraft', 'fortnite'
+    'whatsapp', 'messenger', 'wechat', 'line', 'snapchat', 'reddit', 'tinder', 'quora', 'flickr',
+    'steam', 'playstation', 'xbox', 'nintendo', 'epicgames', 'riotgames', 'roblox', 'minecraft', 'fortnite',
+    'valorant', 'leagueoflegends', 'dota2', 'pubg', 'apexlegends', 'callofduty', 'counterstrike'
   ].includes(platform.tag)) {
     platform.filters.push('top');
   }
