@@ -11,6 +11,7 @@ const btnClearAll       = document.getElementById('btnClearAll');
 const btnGenerate       = document.getElementById('btnGenerate');
 const btnPreviewExport  = document.getElementById('btnPreviewExport');
 const btnExportCSV      = document.getElementById('btnExportCSV');
+const btnShareLink      = document.getElementById('btnShareLink');
 const btnPreviewAll     = document.getElementById('btnPreviewAll');
 const btnRandomize      = document.getElementById('btnRandomize');
 const btnSelectAll      = document.getElementById('btnSelectAll');
@@ -22,6 +23,7 @@ const btnUndo           = document.getElementById('btnUndo');
 const btnSaveRoster     = document.getElementById('btnSaveRoster');
 const btnLoadRoster     = document.getElementById('btnLoadRoster');
 const btnShortcuts      = document.getElementById('btnShortcuts');
+const btnHelp           = document.getElementById('btnHelp');
 const filterBtns        = document.querySelectorAll('.filter-btn');
 const includeInstall    = document.getElementById('includeInstall');
 const includeCSV        = document.getElementById('includeCSV');
@@ -29,6 +31,7 @@ const includePreview    = document.getElementById('includePreview');
 const sortSelect        = document.getElementById('sortSelect'); // optional (UI can be removed)
 const themeToggle       = document.getElementById('themeToggle');
 const themeIcon         = document.getElementById('themeIcon');
+const langToggle        = document.getElementById('langToggle');
 
 // Search dropdown
 const searchDropdown    = document.getElementById('searchDropdown');
@@ -104,6 +107,25 @@ const modalGrid         = document.getElementById('modalGrid');
 const shortcutsModal    = document.getElementById('shortcutsModal');
 const shortcutsBackdrop = document.getElementById('shortcutsBackdrop');
 const shortcutsClose    = document.getElementById('shortcutsClose');
+const helpModal         = document.getElementById('helpModal');
+const helpBackdrop      = document.getElementById('helpBackdrop');
+const helpClose         = document.getElementById('helpClose');
+const confirmModal      = document.getElementById('confirmModal');
+const confirmBackdrop   = document.getElementById('confirmBackdrop');
+const confirmClose      = document.getElementById('confirmClose');
+const confirmTitleEl    = document.getElementById('confirmTitle');
+const confirmMessageEl  = document.getElementById('confirmMessage');
+const confirmAcceptBtn  = document.getElementById('confirmAccept');
+const confirmCancelBtn  = document.getElementById('confirmCancel');
+const shareModal        = document.getElementById('shareModal');
+const shareBackdrop     = document.getElementById('shareBackdrop');
+const shareClose        = document.getElementById('shareClose');
+const shareDesc         = document.getElementById('shareDesc');
+const shareLinkInput    = document.getElementById('shareLinkInput');
+const btnCopyShare      = document.getElementById('btnCopyShare');
+const btnOpenShare      = document.getElementById('btnOpenShare');
+const btnNativeShare    = document.getElementById('btnNativeShare');
+const btnShareClose     = document.getElementById('btnShareClose');
 
 // ─── CONFIGURATION ───────────────────────────────────────────
 const CONFIG = {
@@ -115,6 +137,538 @@ const CONFIG = {
   MIN_EXPORT_SIZE: 50,
   MAX_EXPORT_SIZE: 2000
 };
+
+// ─── I18N ────────────────────────────────────────────────────
+const I18N = {
+  es: {
+    skip_to_content: 'Saltar al contenido',
+    page_title: 'FlagForge Studio | Editor de Banderas y Logos',
+    page_description: 'Herramienta profesional para generar packs de banderas y logos de plataformas con números personalizados para PUBG Observer. Exporta en ZIP listo para usar en overlays de stream.',
+    noscript_message: 'Esta herramienta necesita JavaScript para funcionar.',
+    stat_selected: 'Seleccionados',
+    tooltip_undo: 'Deshacer última acción (Ctrl+Z)',
+    tooltip_randomize: 'Agregar 5 banderas aleatorias',
+    tooltip_select_all: 'Seleccionar todos los visibles',
+    tooltip_clear_all: 'Vaciar selección',
+    tooltip_shortcuts: 'Atajos de teclado',
+    tooltip_help: 'Ayuda e información',
+    tooltip_language: 'Cambiar idioma',
+    tooltip_theme: 'Cambiar tema',
+    aria_open_menu: 'Abrir menú',
+    aria_open_search: 'Abrir búsqueda',
+    search_clear: 'Limpiar búsqueda',
+    mode_flags: 'Banderas',
+    mode_platforms: 'Plataformas',
+    view_list: 'Vista lista',
+    view_grid: 'Vista grilla',
+    flag_style_label: 'Estilo de Banderas',
+    flag_style_realistic: '🎨 Realistas (Recomendado)',
+    flag_style_square: '🔲 Cuadradas Minimalistas',
+    btn_add_all: 'Agregar todos visibles',
+    workspace_title: 'Vista Previa & Exportación',
+    btn_preview_all: 'Vista general',
+    btn_export_csv: 'Solo CSV',
+    btn_share: 'Compartir',
+    btn_save: 'Guardar',
+    btn_load: 'Cargar',
+    preview_label: 'Vista Previa',
+    nav_prev: 'Anterior (←)',
+    nav_next: 'Siguiente (→)',
+    canvas_copy: 'Copiar imagen al portapapeles (Ctrl+C)',
+    canvas_zoom_in: 'Acercar vista previa',
+    canvas_zoom_out: 'Alejar vista previa',
+    canvas_zoom_reset: 'Restablecer zoom',
+    export_settings_title: 'Ajustes de Exportación',
+    reset_settings_title: 'Restaurar valores por defecto',
+    reset_label: 'Reset',
+    accordion_presets: 'Presets',
+    presets_fast: 'Presets Rápidos',
+    presets_fast_hint: 'Configuraciones predefinidas para diferentes estilos',
+    preset_gaming_title: 'Gaming: Colores neón vibrantes, números grandes y llamativos. Perfecto para streams con alta energía.',
+    preset_gaming: 'Gaming',
+    preset_esports_title: 'Esports Pro: Estilo profesional con máximo contraste. Inspirado en torneos oficiales de PUBG.',
+    preset_esports: 'Esports Pro',
+    preset_sport_title: 'Sport: Estilo deportivo clásico con números bold. Ideal para competencias tradicionales.',
+    preset_sport: 'Sport',
+    preset_clean_title: 'Clean: Minimalista y elegante con fondo transparente. Para overlays discretos.',
+    preset_clean: 'Clean',
+    preset_retro_title: 'Retro: Estilo vintage con colores dorados. Perfecto para eventos temáticos.',
+    preset_retro: 'Retro',
+    accordion_base: 'Base',
+    label_resolution: 'Resolución (px)',
+    label_number_start: 'Número inicial',
+    hint_number_start: 'PUBG puede asignar hasta #105 en Solos',
+    label_canvas_shape: 'Forma del Canvas',
+    shape_square: 'Cuadrado',
+    shape_rounded: 'Redondeado',
+    shape_circle: 'Círculo',
+    label_canvas_bg: 'Fondo del canvas',
+    label_bg_transparent: 'Fondo transparente',
+    label_color_transparent: 'Color · Transparente',
+    accordion_number: 'Número',
+    label_number_size: 'Tamaño Número',
+    label_stroke_size: 'Grosor Contorno',
+    label_number_color: 'Color del Número',
+    label_text_stroke: 'Texto · Contorno',
+    label_number_position: 'Posición del Número',
+    label_number_font: 'Fuente del Número',
+    font_default: 'Arial Black (por defecto)',
+    font_bebas: 'Bebas Neue (Gaming)',
+    font_anton: 'Anton (Bold Gaming)',
+    font_teko: 'Teko (Esports)',
+    font_bungee: 'Bungee (Retro)',
+    label_custom_text: 'Texto personalizado',
+    hint_custom_text: 'Dejar vacío para usar número',
+    placeholder_custom_text: 'Ej: GG, WIN, etc...',
+    label_number_opacity: 'Opacidad del Número',
+    label_shadow: 'Sombra del número',
+    label_shadow_color: 'Color de sombra',
+    label_show_number: 'Mostrar número',
+    label_square_fit: 'Ajustar al cuadrado',
+    roster_title: 'Selección',
+    roster_drag_hint: 'arrastrar para reordenar',
+    tooltip_shuffle: 'Mezclar orden',
+    btn_shuffle: 'Mezclar',
+    tooltip_sort: 'Ordenar A–Z',
+    btn_sort: 'A–Z',
+    tooltip_duplicate: 'Duplicar selección activa',
+    btn_duplicate: 'Duplicar',
+    btn_clear: 'Vaciar',
+    export_include_install: 'Incluir',
+    export_include_csv: 'Incluir',
+    export_include_preview: 'Incluir preview HTML',
+    btn_preview_zip: 'Vista previa ZIP',
+    btn_package_zip: 'Empaquetar ZIP',
+    progress_generating: 'Generando...',
+    progress_generating_item: 'Generando {{current}}/{{total}}: {{name}}',
+    progress_packaging: 'Empaquetando ZIP...',
+    modal_preview_title: 'Vista General de Selección',
+    modal_shortcuts_title: 'Atajos de Teclado',
+    shortcut_nav: 'Navegar entre ítems',
+    shortcut_delete: 'Eliminar ítem activo',
+    shortcut_undo: 'Deshacer última acción',
+    shortcut_copy: 'Copiar preview al portapapeles',
+    shortcut_save: 'Guardar roster como JSON',
+    shortcut_export: 'Empaquetar ZIP',
+    shortcut_close: 'Cerrar modal',
+    shortcut_search: 'Enfocar búsqueda',
+    confirm_title: 'Esta página dice',
+    confirm_accept: 'Aceptar',
+    confirm_cancel: 'Cancelar',
+    confirm_clear_btn: 'Vaciar',
+    confirm_change_btn: 'Cambiar',
+    confirm_clear_selection: '¿Estás seguro de vaciar la selección? Se eliminarán {{count}} {{items}}.',
+    confirm_mode_change: '¿Cambiar a {{mode}}? Se perderá la selección actual.',
+    share_title: 'Compartir selección',
+    share_desc: 'Generá un link con tu selección actual.',
+    share_desc_dynamic: 'Link con {{count}} {{items}} ({{mode}}).',
+    share_meta: 'Incluye modo, selección y ajustes.',
+    share_copy: 'Copiar',
+    share_close: 'Cerrar',
+    share_native: 'Compartir',
+    share_open: 'Abrir',
+    help_title: 'Ayuda e información',
+    help_what_title: 'Qué es FlagForge',
+    help_what_body: 'FlagForge te permite crear packs de banderas o logos con números personalizados para overlays y observación en PUBG. Podés armar listas, ver vista previa y exportar todo en ZIP.',
+    help_how_title: 'Cómo usar',
+    help_how_1: 'Elegí Banderas o Plataformas y buscá lo que necesitás.',
+    help_how_2: 'Agregá ítems a la selección y reordenalos con drag.',
+    help_how_3: 'Ajustá tamaño, colores y estilo en “Ajustes de Exportación”.',
+    help_how_4: 'Exportá en ZIP o compartí un link con tu selección.',
+    help_export_title: 'Exportación',
+    help_export_body: 'El ZIP incluye imágenes numeradas y, si querés, archivos adicionales como TeamInfo.csv y preview HTML.',
+    help_share_title: 'Compartir',
+    help_share_body: 'El link guarda tu selección y ajustes. Al abrirlo, la web carga exactamente ese estado.',
+    help_privacy_title: 'Privacidad',
+    help_privacy_body: 'Todo funciona localmente en tu navegador. No se suben archivos ni selecciones a servidores.',
+    help_credits_title: 'Créditos',
+    help_credits_body: 'Proyecto creado y diseñado por SkuuIll.',
+    help_created_by: 'Creado por',
+    search_close: 'Cerrar búsqueda',
+    search_placeholder: 'Buscar...',
+    search_placeholder_flags: 'Buscar país, código ISO o continente...',
+    search_placeholder_platforms: 'Buscar plataforma, tag o categoría...',
+    search_no_results: 'Sin resultados para «{{query}}»',
+    empty_roster_title: 'Sin {{items}} seleccionadas',
+    empty_roster_sub: 'Hacé clic en un {{item}} de la librería para agregarlo.',
+    aria_item_selected: 'Ya seleccionado',
+    aria_item_add: 'Click para agregar',
+    library_title_flags: 'Librería',
+    library_title_platforms: 'Plataformas',
+    count_label_flags: 'países',
+    count_label_platforms: 'plataformas',
+    placeholder_preview_flags: 'Seleccioná una bandera<br>para ver la vista previa',
+    placeholder_preview_platforms: 'Seleccioná una plataforma<br>para ver la vista previa',
+    filter_all: 'Todos',
+    filter_popular: 'Populares',
+    filter_esports: 'PUBG Esports',
+    filter_iconic: 'Icónicas',
+    filter_hispanic: 'Hispanos',
+    filter_america: 'América',
+    filter_europe: 'Europa',
+    filter_asia: 'Asia',
+    filter_africa: 'África',
+    filter_oceania: 'Oceanía',
+    filter_social: 'Social',
+    filter_streaming: 'Streaming',
+    filter_gaming: 'Gaming',
+    filter_tech: 'Tech',
+    filter_dev: 'Dev',
+    filter_music: 'Música',
+    item_flag: 'bandera',
+    item_flags: 'banderas',
+    item_platform: 'plataforma',
+    item_platforms: 'plataformas',
+    mode_flags_label: 'Banderas',
+    mode_platforms_label: 'Plataformas',
+    toast_no_selection_share: 'No hay selección para compartir',
+    toast_link_copied: 'Link copiado ✅',
+    toast_link_copy_fail: 'No se pudo copiar el link',
+    toast_share_failed: 'No se pudo compartir',
+    toast_nothing_to_undo: 'Nada que deshacer',
+    toast_action_undone: 'Acción deshecha ↩',
+    toast_style_changed: 'Estilo cambiado: {{style}}',
+    toast_resolution: 'Resolución: {{size}}px',
+    toast_selection_cleared: 'Selección vaciada',
+    toast_order_shuffled: '¡Orden mezclado! 🔀',
+    toast_sorted_az: 'Ordenado A–Z 🔤',
+    toast_select_item_first: 'Seleccioná un {{item}} primero',
+    toast_duplicated: '{{name}} duplicado ⎘',
+    toast_added_count: '+{{count}} {{items}} agregados ✅',
+    toast_all_in_selection: 'Todos ya están en la selección',
+    toast_all_selected: 'Todos ya seleccionados',
+    toast_all_selected_already: 'Ya están todos seleccionados',
+    toast_random_added: '+{{count}} {{items}} aleatorios 🎲',
+    toast_theme_light: 'Tema claro activado',
+    toast_theme_dark: 'Tema oscuro activado',
+    toast_removed: '{{name}} eliminado',
+    toast_preview_empty: 'No hay nada en el preview',
+    toast_copy_not_supported: 'Copiado no soportado en este navegador',
+    toast_copy_unavailable: 'Copiado no disponible (falta soporte de portapapeles)',
+    toast_copied_clipboard: '¡Imagen copiada al portapapeles! 📋',
+    toast_copy_error: 'Error al copiar (requiere HTTPS o localhost)',
+    toast_nothing_to_save: 'No hay nada que guardar',
+    toast_roster_saved: 'Roster guardado ({{count}} {{items}}) 💾',
+    toast_roster_loaded: 'Roster cargado: {{count}} {{items}} 📂',
+    toast_file_load_error: 'Error al cargar el archivo',
+    toast_share_loaded: 'Selección compartida cargada ✅',
+    toast_share_invalid: 'Link de compartir inválido',
+    toast_already_selected: '{{name}} ya está en la selección',
+    toast_added_item: '{{name}} agregado ✅',
+    toast_csv_downloaded: 'TeamInfo.csv descargado 📄',
+    toast_export_done: '¡Descarga lista! {{count}} {{items}} exportados 🎉',
+    toast_export_error: 'Error al generar el pack. Intentá de nuevo.',
+    toast_preset_applied: 'Preset "{{name}}" aplicado',
+    toast_settings_reset: 'Configuración restaurada',
+    toast_checking_platforms: 'Verificando logos de plataformas...',
+    toast_mode_activated: 'Modo {{mode}} activado'
+  },
+  en: {
+    skip_to_content: 'Skip to content',
+    page_title: 'FlagForge Studio | Flag and Logo Editor',
+    page_description: 'Professional tool to generate packs of flags and platform logos with custom numbers for PUBG Observer. Export a ZIP ready for stream overlays.',
+    noscript_message: 'This tool needs JavaScript to work.',
+    stat_selected: 'Selected',
+    tooltip_undo: 'Undo last action (Ctrl+Z)',
+    tooltip_randomize: 'Add 5 random flags',
+    tooltip_select_all: 'Select all visible',
+    tooltip_clear_all: 'Clear selection',
+    tooltip_shortcuts: 'Keyboard shortcuts',
+    tooltip_help: 'Help and info',
+    tooltip_language: 'Change language',
+    tooltip_theme: 'Change theme',
+    aria_open_menu: 'Open menu',
+    aria_open_search: 'Open search',
+    search_clear: 'Clear search',
+    mode_flags: 'Flags',
+    mode_platforms: 'Platforms',
+    view_list: 'List view',
+    view_grid: 'Grid view',
+    flag_style_label: 'Flag Style',
+    flag_style_realistic: '🎨 Realistic (Recommended)',
+    flag_style_square: '🔲 Minimal Squares',
+    btn_add_all: 'Add all visible',
+    workspace_title: 'Preview & Export',
+    btn_preview_all: 'Overview',
+    btn_export_csv: 'CSV only',
+    btn_share: 'Share',
+    btn_save: 'Save',
+    btn_load: 'Load',
+    preview_label: 'Preview',
+    nav_prev: 'Previous (←)',
+    nav_next: 'Next (→)',
+    canvas_copy: 'Copy image to clipboard (Ctrl+C)',
+    canvas_zoom_in: 'Zoom in preview',
+    canvas_zoom_out: 'Zoom out preview',
+    canvas_zoom_reset: 'Reset zoom',
+    export_settings_title: 'Export Settings',
+    reset_settings_title: 'Restore default values',
+    reset_label: 'Reset',
+    accordion_presets: 'Presets',
+    presets_fast: 'Quick Presets',
+    presets_fast_hint: 'Predefined configurations for different styles',
+    preset_gaming_title: 'Gaming: Vibrant neon colors, big bold numbers. Perfect for high-energy streams.',
+    preset_gaming: 'Gaming',
+    preset_esports_title: 'Esports Pro: Professional style with maximum contrast. Inspired by official PUBG tournaments.',
+    preset_esports: 'Esports Pro',
+    preset_sport_title: 'Sport: Classic sports style with bold numbers. Ideal for traditional competitions.',
+    preset_sport: 'Sport',
+    preset_clean_title: 'Clean: Minimal and elegant with transparent background. For subtle overlays.',
+    preset_clean: 'Clean',
+    preset_retro_title: 'Retro: Vintage style with golden colors. Perfect for themed events.',
+    preset_retro: 'Retro',
+    accordion_base: 'Base',
+    label_resolution: 'Resolution (px)',
+    label_number_start: 'Starting number',
+    hint_number_start: 'PUBG can assign up to #105 in Solos',
+    label_canvas_shape: 'Canvas Shape',
+    shape_square: 'Square',
+    shape_rounded: 'Rounded',
+    shape_circle: 'Circle',
+    label_canvas_bg: 'Canvas background',
+    label_bg_transparent: 'Transparent background',
+    label_color_transparent: 'Color · Transparent',
+    accordion_number: 'Number',
+    label_number_size: 'Number size',
+    label_stroke_size: 'Stroke width',
+    label_number_color: 'Number color',
+    label_text_stroke: 'Text · Stroke',
+    label_number_position: 'Number position',
+    label_number_font: 'Number font',
+    font_default: 'Arial Black (default)',
+    font_bebas: 'Bebas Neue (Gaming)',
+    font_anton: 'Anton (Bold Gaming)',
+    font_teko: 'Teko (Esports)',
+    font_bungee: 'Bungee (Retro)',
+    label_custom_text: 'Custom text',
+    hint_custom_text: 'Leave empty to use number',
+    placeholder_custom_text: 'Ex: GG, WIN, etc...',
+    label_number_opacity: 'Number opacity',
+    label_shadow: 'Number shadow',
+    label_shadow_color: 'Shadow color',
+    label_show_number: 'Show number',
+    label_square_fit: 'Fit to square',
+    roster_title: 'Selection',
+    roster_drag_hint: 'drag to reorder',
+    tooltip_shuffle: 'Shuffle order',
+    btn_shuffle: 'Shuffle',
+    tooltip_sort: 'Sort A–Z',
+    btn_sort: 'A–Z',
+    tooltip_duplicate: 'Duplicate active selection',
+    btn_duplicate: 'Duplicate',
+    btn_clear: 'Clear',
+    export_include_install: 'Include',
+    export_include_csv: 'Include',
+    export_include_preview: 'Include HTML preview',
+    btn_preview_zip: 'ZIP preview',
+    btn_package_zip: 'Package ZIP',
+    progress_generating: 'Generating...',
+    progress_generating_item: 'Generating {{current}}/{{total}}: {{name}}',
+    progress_packaging: 'Packaging ZIP...',
+    modal_preview_title: 'Selection Overview',
+    modal_shortcuts_title: 'Keyboard Shortcuts',
+    shortcut_nav: 'Navigate between items',
+    shortcut_delete: 'Delete active item',
+    shortcut_undo: 'Undo last action',
+    shortcut_copy: 'Copy preview to clipboard',
+    shortcut_save: 'Save roster as JSON',
+    shortcut_export: 'Package ZIP',
+    shortcut_close: 'Close modal',
+    shortcut_search: 'Focus search',
+    confirm_title: 'This page says',
+    confirm_accept: 'Accept',
+    confirm_cancel: 'Cancel',
+    confirm_clear_btn: 'Clear',
+    confirm_change_btn: 'Switch',
+    confirm_clear_selection: 'Are you sure you want to clear the selection? {{count}} {{items}} will be removed.',
+    confirm_mode_change: 'Switch to {{mode}}? The current selection will be lost.',
+    share_title: 'Share selection',
+    share_desc: 'Generate a link with your current selection.',
+    share_desc_dynamic: 'Link with {{count}} {{items}} ({{mode}}).',
+    share_meta: 'Includes mode, selection, and settings.',
+    share_copy: 'Copy',
+    share_close: 'Close',
+    share_native: 'Share',
+    share_open: 'Open',
+    help_title: 'Help and info',
+    help_what_title: 'What is FlagForge',
+    help_what_body: 'FlagForge lets you create packs of flags or platform logos with custom numbers for PUBG overlays and observer use. Build lists, preview, and export everything as a ZIP.',
+    help_how_title: 'How to use',
+    help_how_1: 'Choose Flags or Platforms and search what you need.',
+    help_how_2: 'Add items to the selection and reorder by dragging.',
+    help_how_3: 'Adjust size, colors, and style in “Export Settings”.',
+    help_how_4: 'Export as ZIP or share a link with your selection.',
+    help_export_title: 'Export',
+    help_export_body: 'The ZIP includes numbered images and, if you want, extra files like TeamInfo.csv and an HTML preview.',
+    help_share_title: 'Share',
+    help_share_body: 'The link stores your selection and settings. When opened, the site loads that exact state.',
+    help_privacy_title: 'Privacy',
+    help_privacy_body: 'Everything runs locally in your browser. No files or selections are uploaded to servers.',
+    help_credits_title: 'Credits',
+    help_credits_body: 'Project created and designed by SkuuIll.',
+    help_created_by: 'Created by',
+    search_close: 'Close search',
+    search_placeholder: 'Search...',
+    search_placeholder_flags: 'Search country, ISO code, or continent...',
+    search_placeholder_platforms: 'Search platform, tag, or category...',
+    search_no_results: 'No results for “{{query}}”',
+    empty_roster_title: 'No {{items}} selected',
+    empty_roster_sub: 'Click a {{item}} in the library to add it.',
+    aria_item_selected: 'Already selected',
+    aria_item_add: 'Click to add',
+    library_title_flags: 'Library',
+    library_title_platforms: 'Platforms',
+    count_label_flags: 'countries',
+    count_label_platforms: 'platforms',
+    placeholder_preview_flags: 'Select a flag<br>to see the preview',
+    placeholder_preview_platforms: 'Select a platform<br>to see the preview',
+    filter_all: 'All',
+    filter_popular: 'Popular',
+    filter_esports: 'PUBG Esports',
+    filter_iconic: 'Iconic',
+    filter_hispanic: 'Hispanic',
+    filter_america: 'America',
+    filter_europe: 'Europe',
+    filter_asia: 'Asia',
+    filter_africa: 'Africa',
+    filter_oceania: 'Oceania',
+    filter_social: 'Social',
+    filter_streaming: 'Streaming',
+    filter_gaming: 'Gaming',
+    filter_tech: 'Tech',
+    filter_dev: 'Dev',
+    filter_music: 'Music',
+    item_flag: 'flag',
+    item_flags: 'flags',
+    item_platform: 'platform',
+    item_platforms: 'platforms',
+    mode_flags_label: 'Flags',
+    mode_platforms_label: 'Platforms',
+    toast_no_selection_share: 'No selection to share',
+    toast_link_copied: 'Link copied ✅',
+    toast_link_copy_fail: 'Could not copy the link',
+    toast_share_failed: 'Could not share',
+    toast_nothing_to_undo: 'Nothing to undo',
+    toast_action_undone: 'Action undone ↩',
+    toast_style_changed: 'Style changed: {{style}}',
+    toast_resolution: 'Resolution: {{size}}px',
+    toast_selection_cleared: 'Selection cleared',
+    toast_order_shuffled: 'Order shuffled 🔀',
+    toast_sorted_az: 'Sorted A–Z 🔤',
+    toast_select_item_first: 'Select a {{item}} first',
+    toast_duplicated: '{{name}} duplicated ⎘',
+    toast_added_count: '+{{count}} {{items}} added ✅',
+    toast_all_in_selection: 'Everything is already in the selection',
+    toast_all_selected: 'Everything already selected',
+    toast_all_selected_already: 'Everything is already selected',
+    toast_random_added: '+{{count}} random {{items}} 🎲',
+    toast_theme_light: 'Light theme enabled',
+    toast_theme_dark: 'Dark theme enabled',
+    toast_removed: '{{name}} removed',
+    toast_preview_empty: 'Nothing to preview',
+    toast_copy_not_supported: 'Copy not supported in this browser',
+    toast_copy_unavailable: 'Copy unavailable (clipboard not supported)',
+    toast_copied_clipboard: 'Image copied to clipboard 📋',
+    toast_copy_error: 'Copy error (requires HTTPS or localhost)',
+    toast_nothing_to_save: 'Nothing to save',
+    toast_roster_saved: 'Roster saved ({{count}} {{items}}) 💾',
+    toast_roster_loaded: 'Roster loaded: {{count}} {{items}} 📂',
+    toast_file_load_error: 'Error loading file',
+    toast_share_loaded: 'Shared selection loaded ✅',
+    toast_share_invalid: 'Invalid share link',
+    toast_already_selected: '{{name}} is already selected',
+    toast_added_item: '{{name}} added ✅',
+    toast_csv_downloaded: 'TeamInfo.csv downloaded 📄',
+    toast_export_done: 'Download ready. {{count}} {{items}} exported 🎉',
+    toast_export_error: 'Error generating the pack. Please try again.',
+    toast_preset_applied: 'Preset "{{name}}" applied',
+    toast_settings_reset: 'Settings restored',
+    toast_checking_platforms: 'Checking platform logos...',
+    toast_mode_activated: '{{mode}} mode activated'
+  }
+};
+
+function t(key, vars = {}) {
+  const table = I18N[currentLang] || I18N.es;
+  let str = table[key] || I18N.es[key] || key;
+  Object.keys(vars).forEach(k => {
+    str = str.replace(new RegExp(`{{${k}}}`, 'g'), vars[k]);
+  });
+  return str;
+}
+
+function getItemLabels() {
+  return currentMode === 'flags'
+    ? { singular: t('item_flag'), plural: t('item_flags') }
+    : { singular: t('item_platform'), plural: t('item_platforms') };
+}
+
+function getItemLabelForCount(count) {
+  const labels = getItemLabels();
+  return count === 1 ? labels.singular : labels.plural;
+}
+
+function getModeLabel(mode) {
+  return mode === 'platforms' ? t('mode_platforms_label') : t('mode_flags_label');
+}
+
+function updateModeLabels() {
+  if (libraryTitle) libraryTitle.textContent = currentMode === 'flags' ? t('library_title_flags') : t('library_title_platforms');
+  if (countLabel) countLabel.textContent = currentMode === 'flags' ? t('count_label_flags') : t('count_label_platforms');
+}
+
+function applyLanguage(lang) {
+  currentLang = (lang === 'en' || lang === 'es') ? lang : 'es';
+  document.documentElement.lang = currentLang;
+  document.documentElement.dataset.lang = currentLang;
+  try { localStorage.setItem('flagforge_lang', currentLang); } catch (e) {}
+
+  if (langToggle) {
+    langToggle.textContent = currentLang.toUpperCase();
+    langToggle.setAttribute('aria-label', t('tooltip_language'));
+  }
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (!key) return;
+    const value = t(key);
+    el.textContent = value;
+  });
+
+  document.querySelectorAll('[data-i18n-attr]').forEach(el => {
+    const raw = el.dataset.i18nAttr || '';
+    raw.split('|').forEach(pair => {
+      const [attr, key] = pair.split(':');
+      if (!attr || !key) return;
+      const value = t(key);
+      if (value) el.setAttribute(attr, value);
+    });
+  });
+
+  document.title = t('page_title');
+  const metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', t('page_description'));
+
+  if (searchInput) {
+    searchInput.dataset.placeholderFlags = t('search_placeholder_flags');
+    searchInput.dataset.placeholderPlatforms = t('search_placeholder_platforms');
+    searchInput.placeholder = t('search_placeholder');
+  }
+  if (searchModalInput) {
+    searchModalInput.dataset.placeholderFlags = t('search_placeholder_flags');
+    searchModalInput.dataset.placeholderPlatforms = t('search_placeholder_platforms');
+    searchModalInput.placeholder = t('search_placeholder');
+  }
+
+  updateModeLabels();
+  updateFiltersForMode();
+  syncModeUIStrings();
+
+  if (shareModal && !shareModal.classList.contains('hidden')) {
+    openShareModal();
+  }
+  setupAccessibility();
+}
 
 // ─── STATE ───────────────────────────────────────────────────
 let selectedSlots     = [];
@@ -135,6 +689,8 @@ let currentDB         = db;        // current database (db or platformsDB)
 let currentFlagStyle  = 'realistic'; // 'realistic' | 'square'
 let platformsDBFiltered = null;
 let platformSupportPromise = null;
+let pendingConfirm = null;
+let currentLang = 'es';
 
 // ─── FLAG STYLE HELPER ──────────────────────────────────────────
 function getFlagUrl(country, size = 320) {
@@ -348,6 +904,180 @@ function showToast(msg, type = '') {
   toastTimer = setTimeout(() => { toastEl.className = 'toast'; }, 2800);
 }
 
+// ─── CONFIRM MODAL ───────────────────────────────────────────
+function openConfirmModal({ title, message, confirmText = t('confirm_accept'), cancelText = t('confirm_cancel'), onConfirm } = {}) {
+  if (!confirmModal || !confirmAcceptBtn || !confirmCancelBtn || !confirmTitleEl || !confirmMessageEl) {
+    if (window.confirm(message || t('confirm_title'))) {
+      if (typeof onConfirm === 'function') onConfirm();
+    }
+    return;
+  }
+
+  confirmTitleEl.textContent = title || t('confirm_title');
+  confirmMessageEl.textContent = message || '';
+  confirmAcceptBtn.textContent = confirmText;
+  confirmCancelBtn.textContent = cancelText;
+  pendingConfirm = typeof onConfirm === 'function' ? onConfirm : null;
+
+  confirmModal.classList.remove('hidden');
+  confirmModal.setAttribute('aria-modal', 'true');
+  confirmModal.setAttribute('role', 'dialog');
+  document.body.style.overflow = 'hidden';
+  confirmAcceptBtn.focus();
+}
+
+function closeConfirmModal() {
+  if (!confirmModal) return;
+  confirmModal.classList.add('hidden');
+  confirmModal.removeAttribute('aria-modal');
+  confirmModal.removeAttribute('role');
+  document.body.style.overflow = '';
+  pendingConfirm = null;
+}
+
+// ─── SHARE LINK ───────────────────────────────────────────────
+function encodeShareData(obj) {
+  const json = JSON.stringify(obj);
+  const utf8 = encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+    String.fromCharCode(parseInt(p1, 16))
+  );
+  return btoa(utf8).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/,'');
+}
+
+function decodeShareData(str) {
+  const base = str.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base + '='.repeat((4 - base.length % 4) % 4);
+  const bin = atob(padded);
+  const utf8 = bin.split('')
+    .map(c => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+    .join('');
+  return JSON.parse(decodeURIComponent(utf8));
+}
+
+function buildSharePayload() {
+  return {
+    v: 1,
+    mode: currentMode,
+    slots: selectedSlots.map(c => c.iso || c.tag),
+    settings: {
+      exportSize: exportSizeInput.value,
+      numberStart: numberStart.value,
+      size: sizeInput.value,
+      stroke: strokeInput.value,
+      position: currentPosition,
+      shape: currentShape,
+      font: fontSelect.value,
+      numberColor: numberColor.value,
+      strokeColor: strokeColor.value,
+      bgColor: bgColorInput.value,
+      bgTransparent: bgTransparent.checked,
+      showNumber: showNumber.checked,
+      squareFlag: squareFlag.checked
+    }
+  };
+}
+
+function buildShareLink() {
+  const base = window.location.href.split('?')[0].split('#')[0];
+  const payload = buildSharePayload();
+  return `${base}?share=${encodeShareData(payload)}`;
+}
+
+function openShareModal() {
+  if (!selectedSlots.length) {
+    showToast(t('toast_no_selection_share'), 'error');
+    return;
+  }
+  const link = buildShareLink();
+  if (shareLinkInput) shareLinkInput.value = link;
+  if (shareDesc) {
+    shareDesc.textContent = t('share_desc_dynamic', {
+      count: selectedSlots.length,
+      items: getItemLabelForCount(selectedSlots.length),
+      mode: getModeLabel(currentMode)
+    });
+  }
+  if (btnNativeShare) {
+    btnNativeShare.style.display = navigator.share ? '' : 'none';
+  }
+
+  if (!shareModal) return;
+  shareModal.classList.remove('hidden');
+  shareModal.setAttribute('aria-modal', 'true');
+  shareModal.setAttribute('role', 'dialog');
+  document.body.style.overflow = 'hidden';
+  if (shareLinkInput) {
+    shareLinkInput.focus();
+    shareLinkInput.select();
+  }
+}
+
+function closeShareModal() {
+  if (!shareModal) return;
+  shareModal.classList.add('hidden');
+  shareModal.removeAttribute('aria-modal');
+  shareModal.removeAttribute('role');
+  document.body.style.overflow = '';
+}
+
+async function copyShareLink() {
+  if (!shareLinkInput) return;
+  const link = shareLinkInput.value;
+  try {
+    await navigator.clipboard.writeText(link);
+    showToast(t('toast_link_copied'), 'success');
+  } catch (err) {
+    shareLinkInput.select();
+    try {
+      document.execCommand('copy');
+      showToast(t('toast_link_copied'), 'success');
+    } catch (err2) {
+      showToast(t('toast_link_copy_fail'), 'error');
+    }
+  }
+}
+
+function openShareLinkInNewTab() {
+  if (!shareLinkInput) return;
+  const link = shareLinkInput.value;
+  if (!link) return;
+  window.open(link, '_blank');
+}
+
+async function nativeShareLink() {
+  if (!navigator.share || !shareLinkInput) return;
+  const link = shareLinkInput.value;
+  if (!link) return;
+  try {
+    await navigator.share({
+      title: 'FlagForge',
+      text: shareDesc ? shareDesc.textContent : t('share_title'),
+      url: link
+    });
+  } catch (err) {
+    if (err && err.name === 'AbortError') return;
+    showToast(t('toast_share_failed'), 'error');
+  }
+}
+
+function openHelpModal() {
+  if (!helpModal) return;
+  helpModal.classList.remove('hidden');
+  helpModal.setAttribute('aria-modal', 'true');
+  helpModal.setAttribute('role', 'dialog');
+  document.body.style.overflow = 'hidden';
+  const focusable = helpModal.querySelector('button');
+  if (focusable) focusable.focus();
+}
+
+function closeHelpModal() {
+  if (!helpModal) return;
+  helpModal.classList.add('hidden');
+  helpModal.removeAttribute('aria-modal');
+  helpModal.removeAttribute('role');
+  document.body.style.overflow = '';
+}
+
 // ─── UNDO ────────────────────────────────────────────────────
 function pushUndo() {
   undoStack.push(selectedSlots.map(c => c));
@@ -356,12 +1086,12 @@ function pushUndo() {
 }
 
 function undo() {
-  if (!undoStack.length) { showToast('Nada que deshacer'); return; }
+  if (!undoStack.length) { showToast(t('toast_nothing_to_undo')); return; }
   selectedSlots = undoStack.pop();
   currentPreviewIdx = Math.min(currentPreviewIdx, selectedSlots.length - 1);
   updateUI();
   updateUndoButton();
-  showToast('Acción deshecha ↩');
+  showToast(t('toast_action_undone'));
 }
 
 function updateUndoButton() {
@@ -498,6 +1228,14 @@ function init() {
   // Enable transitions only after initial theme/layout are applied
   requestAnimationFrame(() => document.documentElement.classList.add('theme-ready'));
 
+  // Language
+  try {
+    const storedLang = localStorage.getItem('flagforge_lang');
+    applyLanguage(storedLang || 'es');
+  } catch (e) {
+    applyLanguage('es');
+  }
+
   // Layout inicial según tamaño de pantalla
   applyResponsiveLayout(detectDevice());
 
@@ -522,6 +1260,9 @@ function init() {
       });
     }
   } catch(e) {}
+
+  // Load shared selection from URL (overrides session if present)
+  loadShareFromUrl();
 
   resizeCanvas();
   renderLibrary();
@@ -611,8 +1352,8 @@ function init() {
   btnGridView.addEventListener('click', () => setView('grid'));
 
   // ── Mode toggle (flags/platforms) ──
-  btnFlagsMode.addEventListener('click', () => setMode('flags'));
-  btnPlatformsMode.addEventListener('click', () => setMode('platforms'));
+  btnFlagsMode.addEventListener('click', () => requestModeChange('flags'));
+  btnPlatformsMode.addEventListener('click', () => requestModeChange('platforms'));
   
   // ── Flag style selector ──
   const flagStyleSelect = document.getElementById('flagStyleSelect');
@@ -648,7 +1389,7 @@ function init() {
       
       // Re-render library with new style classes
       renderLibrary();
-      showToast(`Estilo cambiado: ${e.target.options[e.target.selectedIndex].text}`, 'success');
+      showToast(t('toast_style_changed', { style: e.target.options[e.target.selectedIndex].text }), 'success');
     });
   }
 
@@ -658,41 +1399,60 @@ function init() {
     presetBtns.forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     refreshPreview();
-    showToast(`Resolución: ${btn.dataset.val}px`);
+    showToast(t('toast_resolution', { size: btn.dataset.val }));
   }));
 
   // ── Roster actions ──
   btnClear.addEventListener('click', () => {
     if (!selectedSlots.length) return;
-    if (!confirm(`¿Estás seguro de vaciar la selección? Se eliminarán ${selectedSlots.length} banderas.`)) return;
-    pushUndo();
-    selectedSlots = []; currentPreviewIdx = -1; updateUI();
-    showToast('Selección vaciada', 'error');
+    openConfirmModal({
+      message: t('confirm_clear_selection', { count: selectedSlots.length, items: getItemLabelForCount(selectedSlots.length) }),
+      confirmText: t('confirm_clear_btn'),
+      cancelText: t('confirm_cancel'),
+      onConfirm: () => {
+        pushUndo();
+        selectedSlots = [];
+        currentPreviewIdx = -1;
+        updateUI();
+        showToast(t('toast_selection_cleared'), 'error');
+      }
+    });
   });
   btnClearAll.addEventListener('click', () => {
     if (!selectedSlots.length) return;
-    if (!confirm(`¿Estás seguro de vaciar la selección? Se eliminarán ${selectedSlots.length} banderas.`)) return;
-    pushUndo();
-    selectedSlots = []; currentPreviewIdx = -1; updateUI();
-    showToast('Selección vaciada', 'error');
+    openConfirmModal({
+      message: t('confirm_clear_selection', { count: selectedSlots.length, items: getItemLabelForCount(selectedSlots.length) }),
+      confirmText: t('confirm_clear_btn'),
+      cancelText: t('confirm_cancel'),
+      onConfirm: () => {
+        pushUndo();
+        selectedSlots = [];
+        currentPreviewIdx = -1;
+        updateUI();
+        showToast(t('toast_selection_cleared'), 'error');
+      }
+    });
   });
   btnShuffleRoster.addEventListener('click', () => {
     if (selectedSlots.length < 2) return;
-    pushUndo(); shuffle(selectedSlots); updateUI(); showToast('¡Orden mezclado! 🔀');
+    pushUndo(); shuffle(selectedSlots); updateUI(); showToast(t('toast_order_shuffled'));
   });
   btnSortRoster.addEventListener('click', () => {
     pushUndo();
     selectedSlots.sort((a,b) => a.name.localeCompare(b.name));
-    updateUI(); showToast('Ordenado A–Z 🔤');
+    updateUI(); showToast(t('toast_sorted_az'));
   });
   btnDuplicateSel.addEventListener('click', () => {
-    if (currentPreviewIdx < 0 || currentPreviewIdx >= selectedSlots.length) { showToast('Seleccioná una bandera primero'); return; }
+    if (currentPreviewIdx < 0 || currentPreviewIdx >= selectedSlots.length) {
+      showToast(t('toast_select_item_first', { item: getItemLabels().singular }));
+      return;
+    }
     pushUndo();
     const dup = selectedSlots[currentPreviewIdx];
     selectedSlots.splice(currentPreviewIdx + 1, 0, dup);
     currentPreviewIdx++;
     updateUI();
-    showToast(`${dup.name} duplicado ⎘`, 'success');
+    showToast(t('toast_duplicated', { name: dup.name }), 'success');
   });
   btnUndo.addEventListener('click', undo);
 
@@ -703,7 +1463,8 @@ function init() {
     pushUndo();
     visible.forEach(c => { if (!selectedSlots.includes(c)) { selectedSlots.push(c); added++; }});
     updateUI();
-    showToast(added ? `+${added} países agregados ✅` : 'Todos ya están en la selección', added ? 'success' : '');
+    const items = getItemLabelForCount(added);
+    showToast(added ? t('toast_added_count', { count: added, items }) : t('toast_all_in_selection'), added ? 'success' : '');
   });
   btnSelectAll.addEventListener('click', () => {
     const visible = getFiltered();
@@ -711,17 +1472,19 @@ function init() {
     pushUndo();
     visible.forEach(c => { if (!selectedSlots.includes(c)) { selectedSlots.push(c); added++; }});
     updateUI();
-    showToast(added ? `+${added} países agregados ✅` : 'Todos ya seleccionados', added ? 'success' : '');
+    const items = getItemLabelForCount(added);
+    showToast(added ? t('toast_added_count', { count: added, items }) : t('toast_all_selected'), added ? 'success' : '');
   });
   btnRandomize.addEventListener('click', () => {
     const pool = db.filter(c => !selectedSlots.includes(c));
-    if (!pool.length) { showToast('Ya están todos seleccionados'); return; }
+    if (!pool.length) { showToast(t('toast_all_selected_already')); return; }
     const count = Math.min(5, pool.length);
     shuffle(pool);
     pushUndo();
     pool.slice(0, count).forEach(c => selectedSlots.push(c));
     updateUI();
-    showToast(`+${count} banderas aleatorias 🎲`, 'success');
+    const items = getItemLabelForCount(count);
+    showToast(t('toast_random_added', { count, items }), 'success');
   });
 
   // ── Preview navigation ──
@@ -748,7 +1511,13 @@ function init() {
   // ── Theme ──
   themeToggle.addEventListener('click', () => {
     isLightTheme = !isLightTheme; applyTheme();
-    showToast(isLightTheme ? 'Tema claro activado' : 'Tema oscuro activado');
+    showToast(isLightTheme ? t('toast_theme_light') : t('toast_theme_dark'));
+  });
+  themeToggle.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      themeToggle.click();
+    }
   });
 
   // ── Sidebar toggle (hamburger menu) ──
@@ -768,6 +1537,9 @@ function init() {
   btnPreviewExport.addEventListener('click', showPreviewModal);
   btnPreviewAll.addEventListener('click', showPreviewModal);
   btnExportCSV.addEventListener('click', exportCSVOnly);
+  if (btnShareLink) {
+    btnShareLink.addEventListener('click', openShareModal);
+  }
 
   // ── Save / Load roster ──
   btnSaveRoster.addEventListener('click', saveRoster);
@@ -778,6 +1550,25 @@ function init() {
   modalBackdrop.addEventListener('click', closeModal);
   shortcutsClose.addEventListener('click', closeShortcuts);
   shortcutsBackdrop.addEventListener('click', closeShortcuts);
+  if (helpClose) helpClose.addEventListener('click', closeHelpModal);
+  if (helpBackdrop) helpBackdrop.addEventListener('click', closeHelpModal);
+  if (confirmClose) confirmClose.addEventListener('click', closeConfirmModal);
+  if (confirmBackdrop) confirmBackdrop.addEventListener('click', closeConfirmModal);
+  if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeConfirmModal);
+  if (confirmAcceptBtn) {
+    confirmAcceptBtn.addEventListener('click', () => {
+      const action = pendingConfirm;
+      closeConfirmModal();
+      if (typeof action === 'function') action();
+    });
+  }
+  if (shareClose) shareClose.addEventListener('click', closeShareModal);
+  if (shareBackdrop) shareBackdrop.addEventListener('click', closeShareModal);
+  if (btnShareClose) btnShareClose.addEventListener('click', closeShareModal);
+  if (btnCopyShare) btnCopyShare.addEventListener('click', copyShareLink);
+  if (btnOpenShare) btnOpenShare.addEventListener('click', openShareLinkInNewTab);
+  if (btnNativeShare) btnNativeShare.addEventListener('click', nativeShareLink);
+  if (shareLinkInput) shareLinkInput.addEventListener('click', () => shareLinkInput.select());
   btnShortcuts.addEventListener('click', () => {
     shortcutsModal.classList.remove('hidden');
     shortcutsModal.setAttribute('aria-modal', 'true');
@@ -785,6 +1576,14 @@ function init() {
     const focusable = shortcutsModal.querySelector('button');
     if (focusable) focusable.focus();
   });
+  if (btnHelp) {
+    btnHelp.addEventListener('click', openHelpModal);
+  }
+  if (langToggle) {
+    langToggle.addEventListener('click', () => {
+      applyLanguage(currentLang === 'es' ? 'en' : 'es');
+    });
+  }
 
   // ── Search modal (mobile) ──
   if (searchToggleBtn) {
@@ -811,17 +1610,29 @@ function init() {
 // ─── ACCESSIBILITY SETUP ─────────────────────────────────────
 function setupAccessibility() {
   // Add ARIA labels to position buttons
-  const posLabels = {
-    'top-left': 'Arriba izquierda',
-    'top-center': 'Arriba centro',
-    'top-right': 'Arriba derecha',
-    'center-left': 'Centro izquierda',
-    'center': 'Centro',
-    'center-right': 'Centro derecha',
-    'bottom-left': 'Abajo izquierda',
-    'bottom-center': 'Abajo centro',
-    'bottom-right': 'Abajo derecha'
-  };
+  const posLabels = currentLang === 'en'
+    ? {
+        'top-left': 'Top left',
+        'top-center': 'Top center',
+        'top-right': 'Top right',
+        'center-left': 'Center left',
+        'center': 'Center',
+        'center-right': 'Center right',
+        'bottom-left': 'Bottom left',
+        'bottom-center': 'Bottom center',
+        'bottom-right': 'Bottom right'
+      }
+    : {
+        'top-left': 'Arriba izquierda',
+        'top-center': 'Arriba centro',
+        'top-right': 'Arriba derecha',
+        'center-left': 'Centro izquierda',
+        'center': 'Centro',
+        'center-right': 'Centro derecha',
+        'bottom-left': 'Abajo izquierda',
+        'bottom-center': 'Abajo centro',
+        'bottom-right': 'Abajo derecha'
+      };
   
   posBtns.forEach(btn => {
     const pos = btn.dataset.pos;
@@ -831,11 +1642,17 @@ function setupAccessibility() {
   });
   
   // Add ARIA labels to shape buttons
-  const shapeLabels = {
-    'square': 'Cuadrado',
-    'rounded': 'Redondeado',
-    'circle': 'Círculo'
-  };
+  const shapeLabels = currentLang === 'en'
+    ? {
+        'square': 'Square',
+        'rounded': 'Rounded',
+        'circle': 'Circle'
+      }
+    : {
+        'square': 'Cuadrado',
+        'rounded': 'Redondeado',
+        'circle': 'Círculo'
+      };
   
   shapeBtns.forEach(btn => {
     const shape = btn.dataset.shape;
@@ -847,12 +1664,12 @@ function setupAccessibility() {
   // Add ARIA labels to mobile navigation buttons
   const hamburgerBtn = document.getElementById('hamburgerBtn');
   if (hamburgerBtn) {
-    hamburgerBtn.setAttribute('aria-label', 'Abrir menú');
+    hamburgerBtn.setAttribute('aria-label', t('aria_open_menu'));
     hamburgerBtn.setAttribute('aria-expanded', 'false');
   }
   
   if (searchToggleBtn) {
-    searchToggleBtn.setAttribute('aria-label', 'Abrir búsqueda');
+    searchToggleBtn.setAttribute('aria-label', t('aria_open_search'));
   }
   
   // Add live region for toast
@@ -872,7 +1689,15 @@ function handleKeyboard(e) {
   const inInput = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
 
   // Global shortcuts (work even in inputs)
-  if (e.key === 'Escape') { closeModal(); closeShortcuts(); return; }
+  if (e.key === 'Escape') {
+    if (confirmModal && !confirmModal.classList.contains('hidden')) { closeConfirmModal(); return; }
+    if (shareModal && !shareModal.classList.contains('hidden')) { closeShareModal(); return; }
+    if (helpModal && !helpModal.classList.contains('hidden')) { closeHelpModal(); return; }
+    closeModal();
+    closeShortcuts();
+    closeSearchModal();
+    return;
+  }
 
   // Shortcuts that DON'T fire in inputs
   if (!inInput) {
@@ -884,7 +1709,7 @@ function handleKeyboard(e) {
         const removed = selectedSlots.splice(currentPreviewIdx, 1)[0];
         if (currentPreviewIdx >= selectedSlots.length) currentPreviewIdx = selectedSlots.length - 1;
         updateUI();
-        showToast(`${removed.name} eliminado`, 'error');
+        showToast(t('toast_removed', { name: removed.name }), 'error');
       }
       return;
     }
@@ -914,29 +1739,46 @@ function navNext() {
 
 // ─── COPY TO CLIPBOARD ───────────────────────────────────────
 async function copyCanvasToClipboard() {
-  if (!selectedSlots.length) { showToast('No hay nada en el preview'); return; }
+  if (!selectedSlots.length) { showToast(t('toast_preview_empty')); return; }
   if (!canvas || typeof canvas.toBlob !== 'function') {
-    showToast('Copiado no soportado en este navegador', 'error');
+    showToast(t('toast_copy_not_supported'), 'error');
     return;
   }
   if (typeof ClipboardItem === 'undefined' || !navigator.clipboard || typeof navigator.clipboard.write !== 'function') {
-    showToast('Copiado no disponible (falta soporte de portapapeles)', 'error');
+    showToast(t('toast_copy_unavailable'), 'error');
     return;
   }
   try {
     canvas.toBlob(async blob => {
       const item = new ClipboardItem({ 'image/png': blob });
       await navigator.clipboard.write([item]);
-      showToast('¡Imagen copiada al portapapeles! 📋', 'success');
+      showToast(t('toast_copied_clipboard'), 'success');
     }, 'image/png');
   } catch(err) {
-    showToast('Error al copiar (requiere HTTPS o localhost)', 'error');
+    showToast(t('toast_copy_error'), 'error');
   }
 }
 
 // ─── SAVE / LOAD ROSTER ──────────────────────────────────────
+function applySettings(s) {
+  if (!s) return;
+  if (s.exportSize)    exportSizeInput.value   = s.exportSize;
+  if (s.numberStart)   numberStart.value        = s.numberStart;
+  if (s.size)          { sizeInput.value = s.size; sizeValue.textContent = s.size + '%'; }
+  if (s.stroke)        { strokeInput.value = s.stroke; strokeValue.textContent = s.stroke + '%'; }
+  if (s.font)          fontSelect.value     = s.font;
+  if (s.numberColor)   numberColor.value    = s.numberColor;
+  if (s.strokeColor)   strokeColor.value    = s.strokeColor;
+  if (s.bgColor)       bgColorInput.value   = s.bgColor;
+  if (s.bgTransparent !== undefined) bgTransparent.checked = s.bgTransparent;
+  if (s.showNumber !== undefined)   showNumber.checked    = s.showNumber;
+  if (s.squareFlag !== undefined)   squareFlag.checked    = s.squareFlag;
+  if (s.shape)         setShape(s.shape);
+  if (s.position)      setPosition(s.position);
+}
+
 function saveRoster() {
-  if (!selectedSlots.length) { showToast('No hay nada que guardar'); return; }
+  if (!selectedSlots.length) { showToast(t('toast_nothing_to_save')); return; }
   const slotsToSave = [...selectedSlots];
   const data = {
     version: 1,
@@ -963,7 +1805,7 @@ function saveRoster() {
   a.href = URL.createObjectURL(blob);
   a.download = `FlagForge_Roster_${new Date().toISOString().slice(0,10)}.json`;
   a.click();
-  showToast(`Roster guardado (${slotsToSave.length} ítems) 💾`, 'success');
+  showToast(t('toast_roster_saved', { count: slotsToSave.length, items: getItemLabelForCount(slotsToSave.length) }), 'success');
 }
 
 function loadRoster(e) {
@@ -990,31 +1832,48 @@ function loadRoster(e) {
         if (c) selectedSlots.push(c);
       });
       // Restore settings
-      if (data.settings) {
-        const s = data.settings;
-        if (s.exportSize)    exportSizeInput.value   = s.exportSize;
-        if (s.numberStart)   numberStart.value        = s.numberStart;
-        if (s.size)          { sizeInput.value = s.size; sizeValue.textContent = s.size + '%'; }
-        if (s.stroke)        { strokeInput.value = s.stroke; strokeValue.textContent = s.stroke + '%'; }
-        if (s.font)          fontSelect.value     = s.font;
-        if (s.numberColor)   numberColor.value    = s.numberColor;
-        if (s.strokeColor)   strokeColor.value    = s.strokeColor;
-        if (s.bgColor)       bgColorInput.value   = s.bgColor;
-        if (s.bgTransparent !== undefined) bgTransparent.checked = s.bgTransparent;
-        if (s.showNumber !== undefined)   showNumber.checked    = s.showNumber;
-        if (s.squareFlag !== undefined)   squareFlag.checked    = s.squareFlag;
-        if (s.shape)         setShape(s.shape);
-        if (s.position)      setPosition(s.position);
-      }
+      applySettings(data.settings);
       currentPreviewIdx = selectedSlots.length > 0 ? 0 : -1;
       updateUI();
-      showToast(`Roster cargado: ${selectedSlots.length} países 📂`, 'success');
+      showToast(t('toast_roster_loaded', { count: selectedSlots.length, items: getItemLabelForCount(selectedSlots.length) }), 'success');
     } catch(err) {
-      showToast('Error al cargar el archivo', 'error');
+      showToast(t('toast_file_load_error'), 'error');
     }
     e.target.value = '';
   };
   reader.readAsText(file);
+}
+
+function applySharedData(data) {
+  if (!data || !Array.isArray(data.slots)) return false;
+  const modeFromData = data.mode === 'platforms' || data.mode === 'flags' ? data.mode : currentMode;
+  if (modeFromData !== currentMode) {
+    setMode(modeFromData, { skipConfirm: true, skipUndo: true, silent: true });
+  }
+  selectedSlots = [];
+  const sources = modeFromData === 'platforms' ? [platformsDB] : [db];
+  data.slots.forEach(identifier => {
+    const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
+    if (c) selectedSlots.push(c);
+  });
+  applySettings(data.settings);
+  currentPreviewIdx = selectedSlots.length > 0 ? 0 : -1;
+  updateUI();
+  return true;
+}
+
+function loadShareFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const shareParam = params.get('share');
+    if (!shareParam) return;
+    const data = decodeShareData(shareParam);
+    const ok = applySharedData(data);
+    if (ok) showToast(t('toast_share_loaded'), 'success');
+  } catch (err) {
+    console.error('Share link error', err);
+    showToast(t('toast_share_invalid'), 'error');
+  }
 }
 
 // ─── FILTER / SORT ───────────────────────────────────────────
@@ -1093,7 +1952,7 @@ function renderLibrary() {
     const searchLabel = searchInput && searchInput.value ? searchInput.value : currentFilter;
     const empty = document.createElement('div');
     empty.style.cssText = 'color:var(--text-muted);font-size:.82rem;padding:20px;text-align:center;';
-    empty.textContent = `Sin resultados para «${searchLabel}»`;
+    empty.textContent = t('search_no_results', { query: searchLabel });
     availableList.appendChild(empty);
     return;
   }
@@ -1148,13 +2007,13 @@ function renderLibrary() {
     
     div.setAttribute('role', 'button');
     div.setAttribute('tabindex', isSelected ? '-1' : '0');
-    div.setAttribute('aria-label', `${c.name}${isSelected ? ' - Ya seleccionado' : ' - Click para agregar'}`);
+    div.setAttribute('aria-label', `${c.name} - ${isSelected ? t('aria_item_selected') : t('aria_item_add')}`);
     
     if (!isSelected) {
       div.addEventListener('click', () => {
         // Check for duplicates
         if (selectedSlots.includes(c)) {
-          showToast(`${c.name} ya está en la selección`, 'error');
+          showToast(t('toast_already_selected', { name: c.name }), 'error');
           return;
         }
         pushUndo();
@@ -1162,7 +2021,7 @@ function renderLibrary() {
         currentPreviewIdx = selectedSlots.length - 1;
         updateUI();
         updatePreview(c, currentPreviewIdx + getStartNum());
-        showToast(`${c.name} agregado ✅`, 'success');
+        showToast(t('toast_added_item', { name: c.name }), 'success');
         
         // Auto-close drawer on mobile when country is selected
         const device = detectDevice();
@@ -1211,11 +2070,13 @@ function renderLibrary() {
 function renderRoster() {
   selectedList.innerHTML = '';
   if (!selectedSlots.length) {
+    const itemsLabel = getItemLabels().plural;
+    const itemLabel = getItemLabels().singular;
     selectedList.innerHTML = `
       <div class="empty-roster">
         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:.2;color:var(--text-muted)"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-        <div class="empty-title">Sin banderas seleccionadas</div>
-        <div class="empty-sub">Hacé clic en un país de la librería para agregarlo.</div>
+        <div class="empty-title">${t('empty_roster_title', { items: itemsLabel })}</div>
+        <div class="empty-sub">${t('empty_roster_sub', { item: itemLabel })}</div>
       </div>`;
     return;
   }
@@ -1267,7 +2128,7 @@ function renderRoster() {
       const removed = selectedSlots.splice(parseInt(e.currentTarget.dataset.idx), 1)[0];
       if (currentPreviewIdx >= selectedSlots.length) currentPreviewIdx = selectedSlots.length - 1;
       updateUI();
-      showToast(`${removed.name} eliminado`, 'error');
+      showToast(t('toast_removed', { name: removed.name }), 'error');
     });
     div.addEventListener('click', e => {
       if (e.target.classList.contains('slot-del') || e.target.classList.contains('drag-handle')) return;
@@ -1322,6 +2183,7 @@ function updateUI() {
   if (btnPreviewExport) btnPreviewExport.disabled = dis;
   if (btnExportCSV)     btnExportCSV.disabled     = dis;
   if (btnPreviewAll)    btnPreviewAll.disabled    = dis;
+  if (btnShareLink)     btnShareLink.disabled     = dis;
   saveSession();
   refreshPreview();
 }
@@ -1660,7 +2522,7 @@ function exportCSVOnly() {
   a.href = URL.createObjectURL(blob);
   a.download = 'TeamInfo.csv';
   a.click();
-  showToast('TeamInfo.csv descargado 📄', 'success');
+  showToast(t('toast_csv_downloaded'), 'success');
 }
 
 // ─── GENERATE PACK ───────────────────────────────────────────
@@ -1687,7 +2549,7 @@ async function generatePack() {
       const num = i + startNum;
       const pct = Math.round((i / selectedSlots.length) * 100);
 
-      progressText.textContent    = `Generando ${i+1}/${selectedSlots.length}: ${c.name}`;
+      progressText.textContent    = t('progress_generating_item', { current: i + 1, total: selectedSlots.length, name: c.name });
       progressPercent.textContent = `${pct}%`;
       progressFill.style.width    = pct + '%';
       progressContainer.setAttribute('aria-valuenow', pct);
@@ -1706,7 +2568,7 @@ async function generatePack() {
     if (includeInstall.checked) zip.file('instalar.bat', generateBat());
     if (includePreview.checked) zip.file('preview.html', generatePreviewHtml());
 
-    progressText.textContent    = 'Empaquetando ZIP...';
+    progressText.textContent    = t('progress_packaging');
     progressPercent.textContent = '100%';
     progressFill.style.width    = '100%';
     progressContainer.setAttribute('aria-valuenow', '100');
@@ -1716,7 +2578,7 @@ async function generatePack() {
     a.href = URL.createObjectURL(content);
     a.download = 'RosterBanderas_FlagForge.zip';
     a.click();
-    showToast(`¡Descarga lista! ${selectedSlots.length} banderas exportadas 🎉`, 'success');
+    showToast(t('toast_export_done', { count: selectedSlots.length, items: getItemLabelForCount(selectedSlots.length) }), 'success');
     
     setTimeout(() => {
       progressContainer.classList.add('hidden');
@@ -1727,7 +2589,7 @@ async function generatePack() {
     }, 3000);
   } catch (error) {
     console.error('Error generando pack:', error);
-    showToast('Error al generar el pack. Intentá de nuevo.', 'error');
+    showToast(t('toast_export_error'), 'error');
     progressContainer.classList.add('hidden');
     btnGenerate.disabled = false;
   }
@@ -1845,7 +2707,7 @@ function updateSearchDropdown() {
       searchDropdownList.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'search-dropdown-empty';
-      empty.textContent = `Sin resultados para «${searchInput.value}»`;
+      empty.textContent = t('search_no_results', { query: searchInput.value });
       searchDropdownList.appendChild(empty);
       searchDropdown.classList.remove('hidden');
       return;
@@ -1909,7 +2771,7 @@ function updateSearchDropdown() {
         div.addEventListener('click', () => {
           // Check for duplicates
           if (selectedSlots.includes(c)) {
-            showToast(`${c.name} ya está en la selección`, 'error');
+            showToast(t('toast_already_selected', { name: c.name }), 'error');
             return;
           }
           pushUndo();
@@ -1917,7 +2779,7 @@ function updateSearchDropdown() {
           currentPreviewIdx = selectedSlots.length - 1;
           updateUI();
           updatePreview(c, currentPreviewIdx + getStartNum());
-          showToast(`${c.name} agregado ✅`, 'success');
+          showToast(t('toast_added_item', { name: c.name }), 'success');
           updateSearchDropdown();
           
           // Auto-close drawer on mobile when country is selected
@@ -2106,7 +2968,7 @@ function updateSearchModalResults() {
       searchModalResults.innerHTML = '';
       const empty = document.createElement('div');
       empty.style.cssText = 'color:var(--text-muted);font-size:.9rem;padding:40px 20px;text-align:center;';
-      empty.textContent = `Sin resultados para «${searchModalInput.value}»`;
+      empty.textContent = t('search_no_results', { query: searchModalInput.value });
       searchModalResults.appendChild(empty);
       return;
     }
@@ -2156,13 +3018,13 @@ function updateSearchModalResults() {
       
       div.setAttribute('role', 'button');
       div.setAttribute('tabindex', isSelected ? '-1' : '0');
-      div.setAttribute('aria-label', `${c.name}${isSelected ? ' - Ya seleccionado' : ' - Click para agregar'}`);
+      div.setAttribute('aria-label', `${c.name} - ${isSelected ? t('aria_item_selected') : t('aria_item_add')}`);
       
       if (!isSelected) {
         div.addEventListener('click', () => {
           // Check for duplicates
           if (selectedSlots.includes(c)) {
-            showToast(`${c.name} ya está en la selección`, 'error');
+            showToast(t('toast_already_selected', { name: c.name }), 'error');
             return;
           }
           pushUndo();
@@ -2170,7 +3032,7 @@ function updateSearchModalResults() {
           currentPreviewIdx = selectedSlots.length - 1;
           updateUI();
           updatePreview(c, currentPreviewIdx + getStartNum());
-          showToast(`${c.name} agregado ✅`, 'success');
+          showToast(t('toast_added_item', { name: c.name }), 'success');
           
           // Close modal automatically after selection
           closeSearchModal();
@@ -2251,7 +3113,7 @@ function applyPreset(name) {
   if (active) active.classList.add('active');
 
   refreshPreview();
-  showToast(`Preset "${name.charAt(0).toUpperCase() + name.slice(1)}" aplicado`, 'success');
+  showToast(t('toast_preset_applied', { name: name.charAt(0).toUpperCase() + name.slice(1) }), 'success');
 }
 
 // ─── RESET SETTINGS ────────────────────────────────────────────────
@@ -2278,7 +3140,7 @@ function resetSettings() {
   presetBtns.forEach(b => b.classList.remove('active'));
 
   refreshPreview();
-  showToast('Configuración restaurada', 'success');
+  showToast(t('toast_settings_reset'), 'success');
 }
 
 // ─── GRID/LIST VIEW ───────────────────────────────────────────────
@@ -2289,13 +3151,24 @@ function setView(mode) {
   btnGridView.classList.toggle('active', mode === 'grid');
 }
 
+function requestModeChange(mode) {
+  if (currentMode === mode) return;
+  if (!selectedSlots.length) {
+    setMode(mode, { skipConfirm: true });
+    return;
+  }
+  openConfirmModal({
+    message: t('confirm_mode_change', { mode: getModeLabel(mode) }),
+    confirmText: t('confirm_change_btn'),
+    cancelText: t('confirm_cancel'),
+    onConfirm: () => setMode(mode, { skipConfirm: true })
+  });
+}
+
 // ─── MODE TOGGLE (FLAGS/PLATFORMS) ────────────────────────────────
 function setMode(mode, options = {}) {
   const { skipConfirm = false, skipUndo = false, silent = false } = options;
   if (currentMode === mode) return;
-  
-  // Store previous mode for potential revert
-  const previousMode = currentMode;
   
   currentMode = mode;
   currentDB = mode === 'flags' ? db : (platformsDBFiltered || platformsDB);
@@ -2305,8 +3178,7 @@ function setMode(mode, options = {}) {
   btnPlatformsMode.classList.toggle('active', mode === 'platforms');
   
   // Update labels
-  libraryTitle.textContent = mode === 'flags' ? 'Librería' : 'Plataformas';
-  countLabel.textContent = mode === 'flags' ? 'países' : 'plataformas';
+  updateModeLabels();
   const flagStyleSection = document.querySelector('.flag-style-selector');
   if (flagStyleSection) {
     flagStyleSection.style.display = mode === 'flags' ? '' : 'none';
@@ -2317,18 +3189,6 @@ function setMode(mode, options = {}) {
   if (mode === 'platforms') {
     bgColorInput.value = '#000000';
     bgTransparent.checked = false;
-  }
-  
-  // Clear selection and reset
-  if (selectedSlots.length > 0 && !skipConfirm) {
-    if (!confirm(`¿Cambiar a ${mode === 'flags' ? 'banderas' : 'plataformas'}? Se perderá la selección actual.`)) {
-      // Revert to previous mode
-      currentMode = previousMode;
-      currentDB = currentMode === 'flags' ? db : platformsDB;
-      btnFlagsMode.classList.toggle('active', currentMode === 'flags');
-      btnPlatformsMode.classList.toggle('active', currentMode === 'platforms');
-      return;
-    }
   }
   
   if (!skipUndo) pushUndo();
@@ -2349,7 +3209,7 @@ function setMode(mode, options = {}) {
   updateStats();
   if (mode === 'platforms') {
     if (!platformsDBFiltered) {
-      showToast('Verificando logos de plataformas...', 'success');
+      showToast(t('toast_checking_platforms'), 'success');
     }
     ensurePlatformSupport().then(list => {
       if (currentMode !== 'platforms') return;
@@ -2361,7 +3221,7 @@ function setMode(mode, options = {}) {
     });
   }
   if (!silent) {
-    showToast(`Modo ${mode === 'flags' ? 'Banderas' : 'Plataformas'} activado`, 'success');
+    showToast(t('toast_mode_activated', { mode: getModeLabel(mode) }), 'success');
   }
 }
 
@@ -2371,46 +3231,49 @@ function updateFiltersForMode() {
   
   if (currentMode === 'flags') {
     filtersContainer.innerHTML = `
-      <button class="filter-btn active" data-filter="all">Todos</button>
+      <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
       <button class="filter-btn" data-filter="top">
-        <i data-lucide="star"></i>Populares
+        <i data-lucide="star"></i>${t('filter_popular')}
       </button>
       <button class="filter-btn" data-filter="esports">
-        <i data-lucide="trophy"></i>PUBG Esports
+        <i data-lucide="trophy"></i>${t('filter_esports')}
       </button>
       <button class="filter-btn" data-filter="iconic">
-        <i data-lucide="flag"></i>Icónicas
+        <i data-lucide="flag"></i>${t('filter_iconic')}
       </button>
-      <button class="filter-btn" data-filter="hispanos">Hispanos</button>
-      <button class="filter-btn" data-filter="america">América</button>
-      <button class="filter-btn" data-filter="europa">Europa</button>
-      <button class="filter-btn" data-filter="asia">Asia</button>
-      <button class="filter-btn" data-filter="africa">África</button>
-      <button class="filter-btn" data-filter="oceania">Oceanía</button>
+      <button class="filter-btn" data-filter="hispanos">${t('filter_hispanic')}</button>
+      <button class="filter-btn" data-filter="america">${t('filter_america')}</button>
+      <button class="filter-btn" data-filter="europa">${t('filter_europe')}</button>
+      <button class="filter-btn" data-filter="asia">${t('filter_asia')}</button>
+      <button class="filter-btn" data-filter="africa">${t('filter_africa')}</button>
+      <button class="filter-btn" data-filter="oceania">${t('filter_oceania')}</button>
     `;
   } else {
     filtersContainer.innerHTML = `
-      <button class="filter-btn active" data-filter="all">Todos</button>
+      <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
       <button class="filter-btn" data-filter="top">
-        <i data-lucide="star"></i>Populares
+        <i data-lucide="star"></i>${t('filter_popular')}
       </button>
-      <button class="filter-btn" data-filter="social">Social</button>
-      <button class="filter-btn" data-filter="streaming">Streaming</button>
-      <button class="filter-btn" data-filter="gaming">Gaming</button>
-      <button class="filter-btn" data-filter="tech">Tech</button>
-      <button class="filter-btn" data-filter="dev">Dev</button>
-      <button class="filter-btn" data-filter="music">Música</button>
+      <button class="filter-btn" data-filter="social">${t('filter_social')}</button>
+      <button class="filter-btn" data-filter="streaming">${t('filter_streaming')}</button>
+      <button class="filter-btn" data-filter="gaming">${t('filter_gaming')}</button>
+      <button class="filter-btn" data-filter="tech">${t('filter_tech')}</button>
+      <button class="filter-btn" data-filter="dev">${t('filter_dev')}</button>
+      <button class="filter-btn" data-filter="music">${t('filter_music')}</button>
     `;
   }
   
   // Re-attach event listeners
   const newFilterBtns = filtersContainer.querySelectorAll('.filter-btn');
-  newFilterBtns.forEach(btn => btn.addEventListener('click', e => {
-    newFilterBtns.forEach(b => b.classList.remove('active'));
-    e.currentTarget.classList.add('active');
-    currentFilter = e.currentTarget.dataset.filter;
-    renderLibrary();
-  }));
+  newFilterBtns.forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === currentFilter);
+    btn.addEventListener('click', e => {
+      newFilterBtns.forEach(b => b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      currentFilter = e.currentTarget.dataset.filter;
+      renderLibrary();
+    });
+  });
   
   // Re-create icons
   if (window.lucide) lucide.createIcons({ nodes: [...filtersContainer.querySelectorAll('[data-lucide]')] });
@@ -2432,8 +3295,8 @@ function syncModeUIStrings() {
 
   if (canvasPlaceholderText) {
     canvasPlaceholderText.innerHTML = isPlatforms
-      ? 'Seleccioná una plataforma<br>para ver la vista previa'
-      : 'Seleccioná una bandera<br>para ver la vista previa';
+      ? t('placeholder_preview_platforms')
+      : t('placeholder_preview_flags');
   }
 }
 
