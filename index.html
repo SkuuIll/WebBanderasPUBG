@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://flagcdn.com https://cdn.simpleicons.org https://kapowaz.github.io https://www.vectorlogo.zone data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com;">
+  <title>FlagForge Studio | Editor de Banderas y Logos</title>
+  <meta name="description" content="Herramienta profesional para generar packs de banderas y logos de plataformas con números personalizados para PUBG Observer. Exporta en ZIP listo para usar en overlays de stream.">
+  <meta name="color-scheme" content="light dark">
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem('flagforge_theme');
+        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+        var isLight = stored === 'light' || (!stored && prefersLight);
+        if (isLight) document.documentElement.classList.add('light');
+      } catch (e) {}
+    })();
+  </script>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  
+  <!-- Web App Meta Tags -->
+  <meta name="theme-color" content="#2f81f7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FlagForge">
+  <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Anton&family=Teko:wght@700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css?v=20260617-competitive">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main" data-i18n="skip_to_content">Saltar al contenido</a>
+  <noscript>
+    <div class="noscript-banner" data-i18n="noscript_message">
+      Esta herramienta necesita JavaScript para funcionar.
+    </div>
+  </noscript>
+
+  <!-- Toast notification -->
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Abrir menú" data-i18n-attr="aria-label:aria_open_menu">
+      <i data-lucide="menu"></i>
+    </button>
+    
+    <div class="logo">
+      <div class="logo-icon">
+        <i data-lucide="flag"></i>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">FlagForge</span>
+        <span class="logo-sub">Studio Pro</span>
+      </div>
+    </div>
+
+    <div class="topbar-center">
+      <div class="search-bar-wrap">
+        <i data-lucide="search" class="search-icon-svg"></i>
+        <input type="text" id="searchInput" class="global-search" placeholder="Buscar..." autocomplete="off"
+               data-placeholder-flags="Buscar país, código ISO o continente..."
+               data-placeholder-platforms="Buscar plataforma, tag o categoría...">
+        <span id="searchResultCount" class="search-result-count"></span>
+        <button id="btnClearSearch" class="clear-search-btn" title="Limpiar búsqueda" data-i18n-attr="title:search_clear">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div id="searchDropdown" class="search-dropdown hidden">
+        <div id="searchDropdownList" class="search-dropdown-list"></div>
+      </div>
+    </div>
+
+    <!-- Search toggle button for mobile -->
+    <button class="search-toggle-btn" id="searchToggleBtn" aria-label="Abrir búsqueda" data-i18n-attr="aria-label:aria_open_search">
+      <i data-lucide="search"></i>
+    </button>
+
+    <div class="header-actions">
+      <div class="stat-chip">
+        <span class="stat-num" id="statNum">0</span>
+        <span class="stat-label" data-i18n="stat_selected">Seleccionados</span>
+      </div>
+      <button class="btn-icon" id="btnHelp" title="Ayuda e información" data-i18n-attr="title:tooltip_help|aria-label:tooltip_help" aria-label="Ayuda">
+        <i data-lucide="info"></i>
+      </button>
+      <button class="lang-toggle" id="langToggle" title="Cambiar idioma" data-i18n-attr="title:tooltip_language|aria-label:tooltip_language" aria-label="Idioma">
+        ES
+      </button>
+      <div class="theme-toggle" id="themeToggle" title="Cambiar tema" data-i18n-attr="title:tooltip_theme|aria-label:tooltip_theme" aria-label="Cambiar tema" role="button" tabindex="0">
+        <i data-lucide="sun" id="themeIcon"></i>
+      </div>
+    </div>
+  </header>
+
+  <!-- Sidebar backdrop for mobile drawer -->
+  <div class="sidebar-backdrop"></div>
+
+  <div class="layout">
+    <!-- Sidebar / Library -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title-row">
+          <i data-lucide="book-open" class="sidebar-icon"></i>
+          <h3 id="libraryTitle">Librería</h3>
+          <div class="sidebar-count"><span id="visibleCount">0</span> <span id="countLabel">países</span></div>
+        </div>
+      </div>
+
+      <div class="sidebar-tools">
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="btnFlagsMode" data-mode="flags" title="Banderas">
+            <span data-i18n="mode_flags">Banderas</span>
+          </button>
+          <button class="mode-btn" id="btnPlatformsMode" data-mode="platforms" title="Plataformas">
+            <span data-i18n="mode_platforms">Plataformas</span>
+          </button>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" id="btnListView" data-view="list" title="Vista lista" data-i18n-attr="title:view_list">
+            <i data-lucide="list"></i>
+          </button>
+          <button class="view-btn" id="btnGridView" data-view="grid" title="Vista grilla" data-i18n-attr="title:view_grid">
+            <i data-lucide="layout-grid"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="flag-style-selector">
+        <label for="flagStyleSelect">
+          <i data-lucide="palette"></i>
+          <span data-i18n="flag_style_label">Estilo de Banderas</span>
+        </label>
+        <select id="flagStyleSelect" class="flag-style-select">
+          <option value="realistic" data-i18n="flag_style_realistic">🎨 Realistas (Recomendado)</option>
+          <option value="rectangle" data-i18n="flag_style_rectangle">▭ Rectangulares</option>
+          <option value="rounded" data-i18n="flag_style_rounded">▢ Bordes redondeados</option>
+          <option value="circle" data-i18n="flag_style_circle">● Circulares</option>
+          <option value="icon" data-i18n="flag_style_icon">◈ Ícono</option>
+          <option value="compact" data-i18n="flag_style_compact">▣ Claras en pequeño</option>
+          <option value="square" data-i18n="flag_style_square">🔲 Cuadradas Minimalistas</option>
+        </select>
+      </div>
+
+      <div class="library-list" id="availableList"></div>
+
+      <div class="sidebar-footer">
+        <button class="btn-sm-primary competitive" id="btnCompetitiveMode">
+          <i data-lucide="trophy"></i>
+          <span data-i18n="btn_competitive_mode">Modo rápido competitivo</span>
+        </button>
+        <button class="btn-sm-secondary" id="btnRandomize" title="Agregar 5 banderas aleatorias" data-i18n-attr="title:tooltip_randomize">
+          <i data-lucide="dices"></i>
+          <span data-i18n="btn_randomize">Aleatorias</span>
+        </button>
+        <button class="btn-sm-secondary" id="btnSelectAll" title="Seleccionar todos los visibles" data-i18n-attr="title:tooltip_select_all">
+          <i data-lucide="check-square"></i>
+          <span data-i18n="btn_select_visible">Seleccionar visibles</span>
+        </button>
+        <button class="btn-sm-primary" id="btnAddAll">
+          <i data-lucide="plus"></i>
+          <span data-i18n="btn_add_all">Agregar todos visibles</span>
+        </button>
+      </div>
+
+      <!-- Sidebar stats removed by request -->
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="workspace" id="main">
+
+      <div class="workspace-header">
+        <h1 class="workspace-title">
+          <div class="title-badge"><i data-lucide="layout-panel-left"></i></div>
+          <span data-i18n="workspace_title">Vista Previa &amp; Exportación</span>
+        </h1>
+        <div class="workspace-actions">
+          <button class="btn-outline" id="btnUndo" title="Deshacer última acción (Ctrl+Z)" data-i18n-attr="title:tooltip_undo">
+            <i data-lucide="undo-2"></i> <span data-i18n="btn_undo">Deshacer</span>
+          </button>
+          <button class="btn-outline" id="btnPreviewAll" disabled>
+            <i data-lucide="eye"></i> <span data-i18n="btn_preview_all">Vista general</span>
+          </button>
+          <button class="btn-outline" id="btnExportCSV" disabled>
+            <i data-lucide="file-text"></i> <span data-i18n="btn_export_csv">Solo CSV</span>
+          </button>
+          <button class="btn-outline" id="btnShareLink" disabled>
+            <i data-lucide="link-2"></i> <span data-i18n="btn_share">Compartir</span>
+          </button>
+          <button class="btn-outline" id="btnSaveRoster">
+            <i data-lucide="save"></i> <span data-i18n="btn_save">Guardar</span>
+          </button>
+          <label class="btn-outline btn-file">
+            <i data-lucide="folder-open"></i> <span data-i18n="btn_load">Cargar</span>
+            <input type="file" id="btnLoadRoster" accept=".json" hidden>
+          </label>
+          <button class="btn-outline" id="btnShortcuts" title="Atajos de teclado" data-i18n-attr="title:tooltip_shortcuts">
+            <i data-lucide="keyboard"></i> <span data-i18n="btn_shortcuts">Atajos</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="workspace-content">
+
+        <!-- Preview Panel -->
+        <div class="preview-card">
+          <div class="preview-header">
+            <div class="card-label-row">
+              <i data-lucide="palette" class="card-icon"></i>
+              <span class="card-label" data-i18n="preview_label">Vista Previa</span>
+            </div>
+            <div class="preview-nav">
+              <button class="nav-btn" id="btnPrevPreview" title="Anterior (←)" data-i18n-attr="title:nav_prev">
+                <i data-lucide="chevron-left"></i>
+              </button>
+              <span id="previewIndex" class="preview-idx">–</span>
+              <button class="nav-btn" id="btnNextPreview" title="Siguiente (→)" data-i18n-attr="title:nav_next">
+                <i data-lucide="chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="canvas-mount" id="canvasMountEl">
+            <canvas id="previewCanvas" width="200" height="200"></canvas>
+            <div id="canvasPlaceholder" class="canvas-placeholder">
+              <i data-lucide="flag" class="ph-icon-svg"></i>
+              <div class="ph-text" id="canvasPlaceholderText">Seleccioná un ítem<br>para ver la vista previa</div>
+            </div>
+            <div class="canvas-controls">
+              <button id="btnCopyCanvas" class="canvas-btn" title="Copiar imagen al portapapeles (Ctrl+C)" data-i18n-attr="title:canvas_copy">
+                <i data-lucide="clipboard"></i>
+              </button>
+              <button id="btnZoomIn" class="canvas-btn" title="Acercar vista previa" data-i18n-attr="title:canvas_zoom_in">
+                <i data-lucide="zoom-in"></i>
+              </button>
+              <button id="btnZoomOut" class="canvas-btn" title="Alejar vista previa" data-i18n-attr="title:canvas_zoom_out">
+                <i data-lucide="zoom-out"></i>
+              </button>
+              <button id="btnResetZoom" class="canvas-btn" title="Restablecer zoom" data-i18n-attr="title:canvas_zoom_reset">
+                <i data-lucide="maximize-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="preview-country-name" id="previewCountryName">—</div>
+
+          <div class="controls-form">
+            <div class="form-section-title">
+              <i data-lucide="settings-2"></i>
+              <span data-i18n="export_settings_title">Ajustes de Exportación</span>
+              <button class="reset-btn" id="btnResetSettings" title="Restaurar valores por defecto" data-i18n-attr="title:reset_settings_title">
+                <i data-lucide="rotate-ccw"></i> <span data-i18n="reset_label">Reset</span>
+              </button>
+            </div>
+
+            <details class="accordion">
+              <summary class="accordion-summary">
+                <span class="accordion-label">
+                  <i data-lucide="sparkles"></i>
+                  <span data-i18n="accordion_presets">Presets</span>
+                </span>
+                <i data-lucide="chevron-down" class="accordion-chevron"></i>
+              </summary>
+              <div class="accordion-body">
+                <div class="control-row">
+                  <label>
+                    <span data-i18n="presets_fast">Presets Rápidos</span>
+                    <span class="hint-text" data-i18n="presets_fast_hint">Configuraciones predefinidas para diferentes estilos</span>
+                  </label>
+                  <div class="presets-row">
+                    <button class="preset-chip" data-preset="gaming" title="Gaming: Colores neón vibrantes, números grandes y llamativos. Perfecto para streams con alta energía." data-i18n-attr="title:preset_gaming_title">
+                      <i data-lucide="gamepad-2"></i> <span data-i18n="preset_gaming">Gaming</span>
+                    </button>
+                    <button class="preset-chip" data-preset="esports" title="Esports Pro: Estilo profesional con máximo contraste. Inspirado en torneos oficiales de PUBG." data-i18n-attr="title:preset_esports_title">
+                      <i data-lucide="trophy"></i> <span data-i18n="preset_esports">Esports Pro</span>
+                    </button>
+                    <button class="preset-chip" data-preset="sport" title="Sport: Estilo deportivo clásico con números bold. Ideal para competencias tradicionales." data-i18n-attr="title:preset_sport_title">
+                      <i data-lucide="medal"></i> <span data-i18n="preset_sport">Sport</span>
+                    </button>
+                    <button class="preset-chip" data-preset="clean" title="Clean: Minimalista y elegante con fondo transparente. Para overlays discretos." data-i18n-attr="title:preset_clean_title">
+                      <i data-lucide="sparkles"></i> <span data-i18n="preset_clean">Clean</span>
+                    </button>
+                    <button class="preset-chip" data-preset="retro" title="Retro: Estilo vintage con colores dorados. Perfecto para eventos temáticos." data-i18n-attr="title:preset_retro_title">
+                      <i data-lucide="tv"></i> <span data-i18n="preset_retro">Retro</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <details class="accordion">
+              <summary class="accordion-summary">
+                <span class="accordion-label">
+                  <i data-lucide="sliders-horizontal"></i>
+                  <span data-i18n="accordion_base">Base</span>
+                </span>
+                <i data-lucide="chevron-down" class="accordion-chevron"></i>
+              </summary>
+              <div class="accordion-body">
+                <div class="control-row">
+                  <label for="exportSizeInput" data-i18n="label_resolution">Resolución (px)</label>
+                  <div class="input-with-hint">
+                    <input type="number" id="exportSizeInput" min="50" max="2000" value="100">
+                    <div class="preset-btns">
+                      <button class="preset-btn" data-val="64">64</button>
+                      <button class="preset-btn" data-val="100">100</button>
+                      <button class="preset-btn" data-val="256">256</button>
+                      <button class="preset-btn" data-val="512">512</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label for="numberStart">
+                    <span data-i18n="label_number_start">Número inicial</span>
+                    <span class="hint-text" data-i18n="hint_number_start">PUBG puede asignar hasta #105 en Solos</span>
+                  </label>
+                  <input type="number" id="numberStart" min="1" max="105" value="1">
+                </div>
+
+                <div class="control-row">
+                  <label data-i18n="label_canvas_shape">Forma del Canvas</label>
+                  <div class="shape-btns">
+                    <button class="shape-btn active" data-shape="square" title="Cuadrado" data-i18n-attr="title:shape_square">
+                      <i data-lucide="square"></i>
+                    </button>
+                    <button class="shape-btn" data-shape="rounded" title="Redondeado" data-i18n-attr="title:shape_rounded">
+                      <i data-lucide="square"></i>
+                    </button>
+                    <button class="shape-btn" data-shape="circle" title="Círculo" data-i18n-attr="title:shape_circle">
+                      <i data-lucide="circle"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label for="bgColorInput" data-i18n="label_canvas_bg">Fondo del canvas</label>
+                  <div class="color-row">
+                    <input type="color" id="bgColorInput" value="#000000">
+                    <label class="toggle-switch toggle-switch-tight" title="Fondo transparente" data-i18n-attr="title:label_bg_transparent">
+                      <input type="checkbox" id="bgTransparent">
+                      <span class="toggle-slider"></span>
+                    </label>
+                    <span class="color-labels" data-i18n="label_color_transparent">Color · Transparente</span>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <details class="accordion">
+              <summary class="accordion-summary">
+                <span class="accordion-label">
+                  <i data-lucide="hash"></i>
+                  <span data-i18n="accordion_number">Número</span>
+                </span>
+                <i data-lucide="chevron-down" class="accordion-chevron"></i>
+              </summary>
+              <div class="accordion-body">
+                <div class="control-row">
+                  <label for="sizeInput">
+                    <span data-i18n="label_number_size">Tamaño Número</span> <span class="val-badge" id="sizeValue">55%</span>
+                  </label>
+                  <input type="range" id="sizeInput" min="10" max="100" value="55" class="slider">
+                </div>
+
+                <div class="control-row">
+                  <label for="strokeInput">
+                    <span data-i18n="label_stroke_size">Grosor Contorno</span> <span class="val-badge" id="strokeValue">10%</span>
+                  </label>
+                  <input type="range" id="strokeInput" min="0" max="20" value="10" class="slider">
+                </div>
+
+                <div class="control-row">
+                  <label data-i18n="label_number_color">Color del Número</label>
+                  <div class="color-row">
+                    <input type="color" id="numberColor" value="#FFFFFF">
+                    <input type="color" id="strokeColor" value="#000000">
+                    <span class="color-labels" data-i18n="label_text_stroke">Texto · Contorno</span>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label data-i18n="label_number_position">Posición del Número</label>
+                  <div class="position-grid">
+                    <button class="pos-btn" data-pos="top-left">
+                      <i data-lucide="arrow-up-left"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="top-center">
+                      <i data-lucide="arrow-up"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="top-right">
+                      <i data-lucide="arrow-up-right"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="center-left">
+                      <i data-lucide="arrow-left"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="center">
+                      <i data-lucide="focus"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="center-right">
+                      <i data-lucide="arrow-right"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="bottom-left">
+                      <i data-lucide="arrow-down-left"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="bottom-center">
+                      <i data-lucide="arrow-down"></i>
+                    </button>
+                    <button class="pos-btn" data-pos="bottom-right">
+                      <i data-lucide="arrow-down-right"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label for="fontSelect" data-i18n="label_number_font">Fuente del Número</label>
+                  <select id="fontSelect">
+                    <option value="Arial Black" data-i18n="font_default">Arial Black (por defecto)</option>
+                    <option value="Impact">Impact</option>
+                    <option value="Bebas Neue" data-i18n="font_bebas">Bebas Neue (Gaming)</option>
+                    <option value="Anton" data-i18n="font_anton">Anton (Bold Gaming)</option>
+                    <option value="Teko" data-i18n="font_teko">Teko (Esports)</option>
+                    <option value="Bungee" data-i18n="font_bungee">Bungee (Retro)</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Verdana">Verdana</option>
+                  </select>
+                </div>
+
+                <div class="control-row">
+                  <label for="customText"><span data-i18n="label_custom_text">Texto personalizado</span>
+                    <span class="hint-text" data-i18n="hint_custom_text">Dejar vacío para usar número</span>
+                  </label>
+                  <input type="text" id="customText" class="custom-text-input" placeholder="Ej: GG, WIN, etc..." maxlength="6" data-i18n-attr="placeholder:placeholder_custom_text">
+                </div>
+
+                <div class="control-row">
+                  <label for="opacityInput">
+                    <span data-i18n="label_number_opacity">Opacidad del Número</span> <span class="val-badge" id="opacityValue">100%</span>
+                  </label>
+                  <input type="range" id="opacityInput" min="10" max="100" value="100" class="slider">
+                </div>
+
+                <div class="control-row control-row-inline">
+                  <label for="shadowToggle" data-i18n="label_shadow">Sombra del número</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="shadowToggle">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="control-row" id="shadowOptionsRow" hidden>
+                  <div class="color-row">
+                    <input type="color" id="shadowColor" value="#000000">
+                    <span class="color-labels" data-i18n="label_shadow_color">Color de sombra</span>
+                  </div>
+                </div>
+
+                <div class="control-row control-row-inline">
+                  <label for="showNumber" data-i18n="label_show_number">Mostrar número</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="showNumber" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="control-row control-row-inline">
+                  <label for="squareFlag" data-i18n="label_square_fit">Ajustar al cuadrado</label>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="squareFlag" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </details>
+
+          </div>
+        </div>
+
+        <!-- Roster Panel -->
+        <div class="roster-card">
+          <div class="roster-header">
+            <div class="roster-title-group">
+              <i data-lucide="list" class="roster-icon"></i>
+              <h2 class="roster-title" data-i18n="roster_title">Selección</h2>
+              <span class="roster-badge" id="totalCount">0</span>
+              <span class="drag-hint">
+                <i data-lucide="grip-vertical" class="drag-icon"></i>
+                <span data-i18n="roster_drag_hint">arrastrar para reordenar</span>
+              </span>
+            </div>
+            <div class="roster-actions">
+              <button class="btn-outline" id="btnShuffleRoster" title="Mezclar orden" data-i18n-attr="title:tooltip_shuffle">
+                <i data-lucide="shuffle"></i> <span data-i18n="btn_shuffle">Mezclar</span>
+              </button>
+              <button class="btn-outline" id="btnSortRoster" title="Ordenar A–Z" data-i18n-attr="title:tooltip_sort">
+                <i data-lucide="arrow-up-a-z"></i> <span data-i18n="btn_sort">A–Z</span>
+              </button>
+              <button class="btn-outline" id="btnDuplicateSel" title="Duplicar selección activa" data-i18n-attr="title:tooltip_duplicate">
+                <i data-lucide="copy"></i> <span data-i18n="btn_duplicate">Duplicar</span>
+              </button>
+              <button class="btn-outline danger" id="btnClear">
+                <i data-lucide="trash-2"></i> <span data-i18n="btn_clear">Vaciar</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="roster-list" id="selectedList"></div>
+
+          <div class="export-footer">
+            <details class="export-options-panel" open>
+              <summary>
+                <i data-lucide="settings-2"></i>
+                <span data-i18n="export_options_title">Opciones de exportación</span>
+              </summary>
+              <div class="export-options">
+                <div class="option-check">
+                  <input type="checkbox" id="includeInstall" checked>
+                  <label for="includeInstall"><span data-i18n="export_include_install">Incluir</span> <code>instalar.bat</code></label>
+                </div>
+                <div class="option-check">
+                  <input type="checkbox" id="includeCSV" checked>
+                  <label for="includeCSV"><span data-i18n="export_include_csv">Incluir</span> <code>TeamInfo.csv</code></label>
+                </div>
+                <div class="option-check">
+                  <input type="checkbox" id="includePreview" checked>
+                  <label for="includePreview" data-i18n="export_include_preview">Incluir preview HTML</label>
+                </div>
+              </div>
+            </details>
+
+            <div class="export-buttons">
+              <button id="btnGenerate" class="btn-primary" disabled>
+                <i data-lucide="package"></i>
+                <span data-i18n="btn_package_zip">Empaquetar ZIP</span>
+              </button>
+              <button id="btnPreviewExport" class="btn-secondary" disabled>
+                <i data-lucide="image"></i>
+                <span data-i18n="btn_preview_zip">Vista previa ZIP</span>
+              </button>
+            </div>
+
+            <div id="progressContainer" class="progress-wrap hidden">
+              <div class="progress-header">
+                <span id="progressText" data-i18n="progress_generating">Generando...</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-bar">
+                <div id="progressFill"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Preview All Modal -->
+  <div id="previewModal" class="modal hidden">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="eye"></i>
+          <h3 data-i18n="modal_preview_title">Vista General de Selección</h3>
+        </div>
+        <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body" id="modalGrid"></div>
+    </div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcutsModal" class="modal hidden">
+    <div class="modal-backdrop" id="shortcutsBackdrop"></div>
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="keyboard"></i>
+          <h3 data-i18n="modal_shortcuts_title">Atajos de Teclado</h3>
+        </div>
+        <button class="modal-close" id="shortcutsClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="shortcuts-grid">
+          <div class="shortcut-item"><div><kbd>←</kbd> <kbd>→</kbd></div><span data-i18n="shortcut_nav">Navegar entre banderas</span></div>
+          <div class="shortcut-item"><div><kbd>Del</kbd></div><span data-i18n="shortcut_delete">Eliminar bandera activa</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>Z</kbd></div><span data-i18n="shortcut_undo">Deshacer última acción</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>C</kbd></div><span data-i18n="shortcut_copy">Copiar preview al portapapeles</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>S</kbd></div><span data-i18n="shortcut_save">Guardar roster como JSON</span></div>
+          <div class="shortcut-item"><div><kbd>Ctrl</kbd>+<kbd>E</kbd></div><span data-i18n="shortcut_export">Empaquetar ZIP</span></div>
+          <div class="shortcut-item"><div><kbd>Esc</kbd></div><span data-i18n="shortcut_close">Cerrar modal</span></div>
+          <div class="shortcut-item"><div><kbd>F</kbd></div><span data-i18n="shortcut_search">Enfocar búsqueda</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal hidden confirm-modal">
+    <div class="modal-backdrop" id="confirmBackdrop"></div>
+    <div class="modal-content modal-sm confirm-content">
+      <div class="modal-header confirm-header">
+        <h3 id="confirmTitle" data-i18n="confirm_title">Esta página dice</h3>
+        <button class="modal-close" id="confirmClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body confirm-body">
+        <p id="confirmMessage" class="confirm-message"></p>
+        <div class="modal-actions confirm-actions">
+          <button class="btn-primary" id="confirmAccept">Aceptar</button>
+          <button class="btn-outline" id="confirmCancel">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div id="shareModal" class="modal hidden share-modal">
+    <div class="modal-backdrop" id="shareBackdrop"></div>
+    <div class="modal-content modal-sm share-content">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="link-2"></i>
+          <h3 data-i18n="share_title">Compartir selección</h3>
+        </div>
+        <button class="modal-close" id="shareClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body">
+        <p class="share-desc" id="shareDesc" data-i18n="share_desc">Generá un link con tu selección actual.</p>
+        <p class="share-meta" data-i18n="share_meta">Incluye modo, selección y ajustes.</p>
+        <div class="share-link-row">
+          <input type="text" id="shareLinkInput" class="share-link-input" readonly>
+          <button class="btn-outline" id="btnCopyShare">
+            <i data-lucide="copy"></i> <span data-i18n="share_copy">Copiar</span>
+          </button>
+        </div>
+        <div class="modal-actions share-actions">
+          <button class="btn-outline" id="btnShareClose" data-i18n="share_close">Cerrar</button>
+          <div class="share-actions-right">
+            <button class="btn-secondary" id="btnNativeShare">
+              <i data-lucide="share-2"></i> <span data-i18n="share_native">Compartir</span>
+            </button>
+            <button class="btn-secondary" id="btnOpenShare">
+              <i data-lucide="external-link"></i> <span data-i18n="share_open">Abrir</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help / Info Modal -->
+  <div id="helpModal" class="modal hidden help-modal">
+    <div class="modal-backdrop" id="helpBackdrop"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <i data-lucide="info"></i>
+          <h3 data-i18n="help_title">Ayuda e información</h3>
+        </div>
+        <button class="modal-close" id="helpClose"><i data-lucide="x"></i></button>
+      </div>
+      <div class="modal-body help-body">
+        <section class="help-section">
+          <h4 data-i18n="help_what_title">Qué es FlagForge</h4>
+          <p data-i18n="help_what_body">FlagForge te permite crear packs de banderas o logos con números personalizados para overlays y observación en PUBG. Podés armar listas, ver vista previa y exportar todo en ZIP.</p>
+        </section>
+        <section class="help-section">
+          <h4 data-i18n="help_how_title">Cómo usar</h4>
+          <ul class="help-list">
+            <li data-i18n="help_how_1">Elegí Banderas o Plataformas y buscá lo que necesitás.</li>
+            <li data-i18n="help_how_2">Agregá ítems a la selección y reordenalos con drag.</li>
+            <li data-i18n="help_how_3">Ajustá tamaño, colores y estilo en “Ajustes de Exportación”.</li>
+            <li data-i18n="help_how_4">Exportá en ZIP o compartí un link con tu selección.</li>
+          </ul>
+        </section>
+        <section class="help-section">
+          <h4 data-i18n="help_export_title">Exportación</h4>
+          <p data-i18n="help_export_body">El ZIP incluye imágenes numeradas y, si querés, archivos adicionales como `TeamInfo.csv` y preview HTML.</p>
+        </section>
+        <section class="help-section">
+          <h4 data-i18n="help_share_title">Compartir</h4>
+          <p data-i18n="help_share_body">El link guarda tu selección y ajustes. Al abrirlo, la web carga exactamente ese estado.</p>
+        </section>
+        <section class="help-section">
+          <h4 data-i18n="help_privacy_title">Privacidad</h4>
+          <p data-i18n="help_privacy_body">Todo funciona localmente en tu navegador. No se suben archivos ni selecciones a servidores.</p>
+        </section>
+        <section class="help-section">
+          <h4 data-i18n="help_credits_title">Créditos</h4>
+          <p data-i18n="help_credits_body">Proyecto creado y diseñado por vos.</p>
+          <div class="help-credit">
+            <span data-i18n="help_created_by">Creado por</span>
+            <a class="help-credit-link" href="https://github.com/SkuuIll" target="_blank" rel="noopener">github.com/SkuuIll</a>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Modal (Mobile) -->
+  <div id="searchModal" class="search-modal hidden">
+    <div class="search-modal-header">
+      <div class="search-modal-input-wrap">
+        <i data-lucide="search" class="search-modal-icon"></i>
+        <input type="text" id="searchModalInput" class="search-modal-input" placeholder="Buscar..." autocomplete="off"
+               data-placeholder-flags="Buscar país, código ISO o continente..."
+               data-placeholder-platforms="Buscar plataforma, tag o categoría...">
+      </div>
+      <button class="search-modal-close" id="searchModalClose" aria-label="Cerrar búsqueda" data-i18n-attr="aria-label:search_close">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div class="search-modal-results" id="searchModalResults"></div>
+  </div>
+
+  <script src="js/db.js?v=20260617-competitive"></script>
+  <script src="js/platforms_db.js?v=20260617-competitive"></script>
+  <script src="js/app.js?v=20260617-competitive"></script>
+</body>
+</html>
