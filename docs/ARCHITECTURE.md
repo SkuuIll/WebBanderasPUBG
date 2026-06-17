@@ -1,10 +1,10 @@
 # Architecture
 
 ## Runtime
-The app is a static PWA. `index.html` loads CSS, CDN dependencies, the two databases, and then `js/app.js`. There is no compilation, bundling, server API, or persistence beyond browser storage and downloaded files.
+The app is a static PWA. `index.html` loads CSS, CDN dependencies, the item databases, and then `js/app.js`. There is no compilation, bundling, server API, or persistence beyond browser storage and downloaded files.
 
 ## Data Flow
-1. `db.js` and `platforms_db.js` expose item arrays.
+1. `db.js`, `platforms_db.js`, and `symbols_db.js` expose item arrays.
 2. `app.js` initializes DOM refs and UI state on `window.load`.
 3. Library filters/search render cards into `#availableList`.
 4. Clicking a card pushes an item into `selectedSlots`.
@@ -14,12 +14,14 @@ The app is a static PWA. `index.html` loads CSS, CDN dependencies, the two datab
 ## Major Subsystems
 - **i18n:** `I18N` object in `app.js`, applied through `data-i18n` and `data-i18n-attr`.
 - **Library/search:** filter buttons, global search dropdown, and mobile search modal.
-- **Preview:** canvas rendering functions draw flags/logos, shapes, number badges, opacity, stroke, and shadow.
+- **Preview:** canvas rendering functions draw flags/logos/symbols, shapes, number badges, opacity, stroke, and shadow.
 - **Roster:** selection, remove, duplicate, shuffle, sort, drag and drop, undo.
 - **Persistence:** session restore, JSON save/load, URL share links.
 - **Export:** CSV-only download and ZIP generation.
 - **Competitive mode:** deterministic 100-flag roster from `COMPETITIVE_FLAG_ORDER`.
+- **Symbols mode:** `symbolsDB` provides high-contrast competitive feed markers. The UI can use Lucide for display, but export uses local canvas drawing through `drawSymbolToCanvas()`.
 - **Installer:** `generateBat()` emits the ZIP installer; root `instalar.bat` is the visible template.
+- **GitHub Pages:** `.github/workflows/pages.yml` runs tests and publishes a clean `_site` artifact containing only public web files.
 
 ## Testing Strategy
 The existing tests are static and fast. Keep them dependency-free unless the project intentionally adopts a test runner. Add browser smoke tests manually after visual changes.

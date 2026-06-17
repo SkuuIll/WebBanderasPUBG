@@ -850,6 +850,84 @@ body.platforms-mode:not(.light) .library-list .item-card.selected {
   padding: 4px;
   border-radius: 8px;
 }
+
+.symbol-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.symbol-icon [data-lucide],
+.symbol-icon svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 2.6;
+}
+.symbol-fallback {
+  display: inline;
+  font-weight: 900;
+  font-size: 0.86rem;
+  line-height: 1;
+}
+.symbol-icon svg + .symbol-fallback {
+  display: none;
+}
+.symbol-icon .lucide + .symbol-fallback {
+  display: none;
+}
+.symbol-icon-sm {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+.symbol-icon-sm [data-lucide],
+.symbol-icon-sm svg {
+  width: 15px;
+  height: 15px;
+}
+.symbol-icon-xs {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+}
+.symbol-icon-lg {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+}
+.symbol-icon-lg [data-lucide],
+.symbol-icon-lg svg {
+  width: 34px;
+  height: 34px;
+  stroke-width: 2.4;
+}
+.library-list.grid-view .symbol-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+}
+.library-list.grid-view .symbol-icon [data-lucide],
+.library-list.grid-view .symbol-icon svg {
+  width: 26px;
+  height: 26px;
+}
+
+html.symbols-mode:not(.light) .library-list .item-card,
+body.symbols-mode:not(.light) .library-list .item-card {
+  background: #151a20;
+  border-color: #2a313a;
+}
+html.symbols-mode:not(.light) .library-list .item-card:hover,
+body.symbols-mode:not(.light) .library-list .item-card:hover {
+  background: #1b222b;
+  border-color: #475569;
+}
 .item-name {
   flex: 1;
   font-size: 0.9rem;
@@ -3810,6 +3888,12 @@ img[loading="lazy"] {
   font-size: 0.9rem;
   text-align: center;
   padding: 40px 20px;
+}
+body.platforms-mode .search-modal-results:empty::before {
+  content: 'Escribe para buscar plataformas, tags o categorías...';
+}
+body.symbols-mode .search-modal-results:empty::before {
+  content: 'Escribe para buscar símbolos, tags o categorías...';
 }
 
 /* Search result items will inherit .item-card styles */

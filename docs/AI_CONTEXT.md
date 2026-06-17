@@ -5,13 +5,13 @@ FlagForge Studio is a static web app for generating PUBG Observer `TeamIcon` pac
 ## Current Shape
 - `js/app.js` is the main monolith. It owns DOM refs, i18n strings, state, rendering, modals, search, canvas drawing, share links, save/load, and ZIP export.
 - `css/style.css` is the main visual system. It contains tokens, layout, panels, responsive drawer behavior, modals, controls, and mobile overrides.
-- `js/db.js` and `js/platforms_db.js` define global arrays consumed by `app.js`.
+- `js/db.js`, `js/platforms_db.js`, and `js/symbols_db.js` define global arrays consumed by `app.js`.
 - `tests/run-tests.mjs` is intentionally dependency-free and uses static parsing.
 
 ## State Model
 Important globals in `app.js`:
 - `selectedSlots` - current roster items.
-- `currentMode` - `flags` or `platforms`.
+- `currentMode` - `flags`, `platforms`, or `symbols`.
 - `currentDB` - active database.
 - `currentPreviewIdx` - selected preview index.
 - `currentPosition`, `currentShape`, `currentFlagStyle` - visual rendering options.
@@ -25,6 +25,8 @@ Important globals in `app.js`:
 - Optional root `preview.html`.
 
 CSV rows must be escaped. Preview HTML must escape item names and URLs. Object URLs created for downloads should be revoked after click.
+
+Symbols export through the same ZIP path as flags/platforms. `drawSymbolToCanvas()` renders the symbol PNG locally with canvas so generated packs do not depend on Lucide or external CDNs.
 
 ## External Dependencies
 The CSP in `index.html` must cover:
@@ -45,3 +47,5 @@ The CSP in `index.html` must cover:
 - Flag image loading uses ordered fallbacks between FlagCDN and Square Flags SVGs.
 - Competitive quick mode uses `COMPETITIVE_FLAG_ORDER` in `app.js` and is documented in `docs/COMPETITIVE_MODE.md`.
 - `instalar.bat` exists as a root template and is also generated inside exported ZIP files.
+- Symbols mode uses `symbolsDB` for PUBG feed markers: eliminated, leader, winner, danger, featured, target, defense, combat, revive, and zone. Keep tags unique and fields complete (`tag`, `name`, `category`, `color`, `icon`).
+- GitHub Pages deploy prepares a clean `_site` artifact instead of publishing tests/docs from the repo root.

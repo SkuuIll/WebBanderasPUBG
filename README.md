@@ -8,7 +8,7 @@
 
 ## ¿Qué es?
 
-Cuando observás un torneo o partida de PUBG en **modo Observer**, el killfeed muestra los números de equipo por defecto (Team 1, Team 2, etc.). Con esta herramienta podés **reemplazar esos números por banderas de países**, lo que hace mucho más fácil identificar de qué país es cada equipo durante el stream.
+Cuando observás un torneo o partida de PUBG en **modo Observer**, el killfeed muestra los números de equipo por defecto (Team 1, Team 2, etc.). Con esta herramienta podés **reemplazar esos números por banderas de países, logos de plataformas o símbolos competitivos**, lo que hace mucho más fácil identificar de qué país es cada equipo o marcar estados importantes durante el stream.
 
 **FlagForge Studio** te permite seleccionar países, asignarles números de equipo, personalizar la apariencia y exportar un ZIP que, una vez instalado, muestra las banderas directamente en el killfeed de PUBG.
 
@@ -37,62 +37,17 @@ Dentro de esta carpeta necesitás:
 
 ## ¿Qué hace `instalar.bat`?
 
-El archivo `instalar.bat` que se incluye en el ZIP **automatiza toda la instalación**. Lo que hace internamente es:
-
-```bat
-@echo off
-setlocal EnableExtensions
-chcp 65001 > nul
-echo =======================================
-echo  FlagForge Studio - Instalando Banderas
-echo =======================================
-
-set "SCRIPT_DIR=%~dp0"
-set "SRC=%SCRIPT_DIR%Observer"
-set "SAVED=%LOCALAPPDATA%\TslGame\Saved"
-set "DST=%SAVED%\Observer"
-
-if not exist "%SRC%\*" (
-  echo  ERROR: No se encontro la carpeta "Observer" junto a instalar.bat
-  echo  Asegurate de descomprimir el ZIP completo.
-  pause
-  exit /b 1
-)
-
-if not exist "%SAVED%" (
-  echo  ERROR: No se encontro la carpeta de PUBG:
-  echo  %SAVED%
-  echo  Ejecuta PUBG al menos una vez para que se cree.
-  pause
-  exit /b 1
-)
-
-if exist "%DST%" (
-  echo  Eliminando instalacion previa...
-  rd /s /q "%DST%"
-)
-
-echo  Copiando nuevas banderas...
-xcopy /E /I /Y "%SRC%" "%DST%\" > nul
-if errorlevel 1 (
-  echo  ERROR: Fallo la copia de archivos.
-  pause
-  exit /b 1
-)
-
-echo.
-echo  Instalacion completada con exito!
-echo  Destino: %DST%
-pause
-```
+El archivo `instalar.bat` que se incluye en el ZIP **automatiza toda la instalación** desde cualquier carpeta donde descomprimas el pack.
 
 ### Paso a paso:
 
 1. **Establece codificación UTF-8** (`chcp 65001`) para que los nombres con acentos se copien correctamente
 2. **Define origen y destino**: origen `Observer` junto a `instalar.bat`, destino `%LOCALAPPDATA%\TslGame\Saved\Observer`
-3. **Verifica precondiciones**: que exista `Observer` y que exista la carpeta `Saved` de PUBG
-4. **Si hay instalacion previa**, elimina `Saved\Observer` y la reemplaza
-5. **Copia los archivos** desde el ZIP hacia `%LOCALAPPDATA%\TslGame\Saved\Observer`
+3. **Verifica precondiciones**: que existan `Observer`, `TeamIcon` y `TeamInfo.csv`
+4. **Crea automáticamente carpetas faltantes** dentro de `%LOCALAPPDATA%\TslGame\Saved`
+5. **Copia archivos con `robocopy`** si está disponible, o `xcopy` como respaldo
+6. **Verifica la instalación final**: `TeamInfo.csv`, `TeamIcon` y PNGs generados
+7. **Muestra mensajes claros** y deja la ventana abierta si ocurre un error
 
 Ejemplo de estructura desde donde podes ejecutar el `.bat` (cualquier ubicacion):
 ```
@@ -121,6 +76,7 @@ Si preferís no usar el `.bat`, simplemente:
 ## Características
 
 - 📚 **200+ países** con banderas reales via FlagCDN
+- ⚔️ **Símbolos para feed** — eliminado, líder, ganador, peligro, destacado, objetivo, defensa, combate, revive y zona
 - 🏆 **Filtros especializados** — PUBG Esports Top 20, Banderas Icónicas, Populares
 - 🔍 **Buscador con autocomplete** — dropdown con preview de banderas, búsqueda por nombre, ISO o continente
 - 🎨 **Vista previa en tiempo real** con canvas dinámico
@@ -144,12 +100,13 @@ Si preferís no usar el `.bat`, simplemente:
 ## Uso Rápido
 
 1. Abrí `index.html` en tu navegador (o usá la [demo online](https://skuuill.github.io/WebBanderasPUBG/))
-2. Seleccioná los países desde la librería de la izquierda
-3. Ajustá el estilo (o usá un preset como "Gaming")
-4. Hacé click en **Empaquetar ZIP**
-5. Descomprimí el ZIP en cualquier carpeta (manteniendo `instalar.bat` junto a `Observer`)
-6. Ejecutá `instalar.bat` (instala en `%LOCALAPPDATA%\TslGame\Saved\Observer`)
-7. Abrí PUBG en modo Observer → las banderas aparecen en el killfeed 🎉
+2. Elegí **Banderas**, **Plataformas** o **Símbolos**
+3. Seleccioná los ítems desde la librería de la izquierda
+4. Ajustá el estilo (o usá un preset como "Gaming")
+5. Hacé click en **Empaquetar ZIP**
+6. Descomprimí el ZIP en cualquier carpeta (manteniendo `instalar.bat` junto a `Observer`)
+7. Ejecutá `instalar.bat` (instala en `%LOCALAPPDATA%\TslGame\Saved\Observer`)
+8. Abrí PUBG en modo Observer y revisá el killfeed
 
 ## Atajos de Teclado
 
@@ -189,13 +146,34 @@ RosterBanderas_FlagForge.zip
 - [FlagCDN](https://flagcdn.com/) — imágenes de banderas
 - [Google Fonts](https://fonts.google.com/) — Fuentes gaming-style (Bebas Neue, Anton, Teko, Bungee)
 
+## Desarrollo y GitHub Pages
+
+```bash
+npm test
+npm start
+```
+
+- `npm test` ejecuta validaciones estáticas de i18n, manifest, assets, CSP, modo competitivo, instalador y metadatos de GitHub Pages.
+- `npm start` levanta la web local en `http://127.0.0.1:8765/`.
+- El workflow `.github/workflows/pages.yml` corre tests y publica automáticamente GitHub Pages desde `main`.
+- El deploy prepara un artifact `_site` con solo archivos públicos: `index.html`, `404.html`, `manifest.json`, `robots.txt`, `sitemap.xml`, `.nojekyll`, `css/`, `js/` e `icons/`.
+- La web incluye `.nojekyll`, `robots.txt`, `sitemap.xml`, `404.html`, canonical URL y metadatos Open Graph/Twitter para compartir mejor el link.
+
+### Activar GitHub Pages desde Actions
+
+1. Subí estos archivos a la rama `main`.
+2. En GitHub, entrá a **Settings → Pages**.
+3. En **Build and deployment**, elegí **Source: GitHub Actions**.
+4. Andá a **Actions → Test and Deploy GitHub Pages** y ejecutá **Run workflow** si querés publicar manualmente.
+5. Cuando el job termine, la app queda en `https://skuuill.github.io/WebBanderasPUBG/`.
+
 ## ¿Por qué FlagForge Studio?
 
 ### vs. Packs Pre-hechos (como pubg-flagfeed)
-✅ **Personalización total** — Elegí exactamente qué banderas querés  
+✅ **Personalización total** — Elegí exactamente qué banderas, logos o símbolos querés  
 ✅ **Vista previa en tiempo real** — Ves cómo queda antes de exportar  
 ✅ **Números configurables** — Posición, tamaño, color, fuente  
-✅ **Plataformas sociales** — No solo banderas, también logos de Twitch, Discord, etc.  
+✅ **Plataformas y símbolos** — No solo banderas, también logos de Twitch/Discord y marcas tácticas para el feed  
 ✅ **Siempre actualizado** — Banderas desde FlagCDN, siempre la última versión  
 ✅ **Filtros especializados** — PUBG Esports Top 20, Banderas Icónicas  
 ✅ **Fuentes profesionales** — Gaming-style fonts para máxima legibilidad

@@ -7,6 +7,19 @@
   <title>FlagForge Studio | Editor de Banderas y Logos</title>
   <meta name="description" content="Herramienta profesional para generar packs de banderas y logos de plataformas con números personalizados para PUBG Observer. Exporta en ZIP listo para usar en overlays de stream.">
   <meta name="color-scheme" content="light dark">
+  <meta name="application-name" content="FlagForge Studio">
+  <meta name="robots" content="index,follow">
+  <link rel="canonical" href="https://skuuill.github.io/WebBanderasPUBG/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FlagForge Studio">
+  <meta property="og:title" content="FlagForge Studio | Editor de Banderas y Logos">
+  <meta property="og:description" content="Generá packs de banderas y logos numerados para PUBG Observer desde el navegador.">
+  <meta property="og:url" content="https://skuuill.github.io/WebBanderasPUBG/">
+  <meta property="og:image" content="https://skuuill.github.io/WebBanderasPUBG/icons/icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="FlagForge Studio | Editor de Banderas y Logos">
+  <meta name="twitter:description" content="Generá packs de banderas y logos numerados para PUBG Observer desde el navegador.">
+  <meta name="twitter:image" content="https://skuuill.github.io/WebBanderasPUBG/icons/icon-512.png">
 
   <script>
     (function () {
@@ -24,7 +37,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   
   <!-- Web App Meta Tags -->
-  <meta name="theme-color" content="#2f81f7">
+  <meta name="theme-color" content="#101318">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="FlagForge">
@@ -36,7 +49,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Anton&family=Teko:wght@700&family=Bungee&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=20260617-competitive">
+  <link rel="stylesheet" href="css/style.css?v=20260617-symbols">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -72,7 +85,8 @@
         <i data-lucide="search" class="search-icon-svg"></i>
         <input type="text" id="searchInput" class="global-search" placeholder="Buscar..." autocomplete="off"
                data-placeholder-flags="Buscar país, código ISO o continente..."
-               data-placeholder-platforms="Buscar plataforma, tag o categoría...">
+               data-placeholder-platforms="Buscar plataforma, tag o categoría..."
+               data-placeholder-symbols="Buscar símbolo, tag o categoría...">
         <span id="searchResultCount" class="search-result-count"></span>
         <button id="btnClearSearch" class="clear-search-btn" title="Limpiar búsqueda" data-i18n-attr="title:search_clear">
           <i data-lucide="x"></i>
@@ -126,6 +140,9 @@
           </button>
           <button class="mode-btn" id="btnPlatformsMode" data-mode="platforms" title="Plataformas">
             <span data-i18n="mode_platforms">Plataformas</span>
+          </button>
+          <button class="mode-btn" id="btnSymbolsMode" data-mode="symbols" title="Símbolos">
+            <span data-i18n="mode_symbols">Símbolos</span>
           </button>
         </div>
         <div class="view-toggle">
@@ -718,7 +735,8 @@
         <i data-lucide="search" class="search-modal-icon"></i>
         <input type="text" id="searchModalInput" class="search-modal-input" placeholder="Buscar..." autocomplete="off"
                data-placeholder-flags="Buscar país, código ISO o continente..."
-               data-placeholder-platforms="Buscar plataforma, tag o categoría...">
+               data-placeholder-platforms="Buscar plataforma, tag o categoría..."
+               data-placeholder-symbols="Buscar símbolo, tag o categoría...">
       </div>
       <button class="search-modal-close" id="searchModalClose" aria-label="Cerrar búsqueda" data-i18n-attr="aria-label:search_close">
         <i data-lucide="x"></i>
@@ -729,6 +747,7 @@
 
   <script src="js/db.js?v=20260617-competitive"></script>
   <script src="js/platforms_db.js?v=20260617-competitive"></script>
-  <script src="js/app.js?v=20260617-competitive"></script>
+  <script src="js/symbols_db.js?v=20260617-symbols"></script>
+  <script src="js/app.js?v=20260617-symbols"></script>
 </body>
 </html>

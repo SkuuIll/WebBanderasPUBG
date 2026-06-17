@@ -62,6 +62,7 @@ const btnGridView       = document.getElementById('btnGridView');
 // Mode toggle (flags/platforms)
 const btnFlagsMode      = document.getElementById('btnFlagsMode');
 const btnPlatformsMode  = document.getElementById('btnPlatformsMode');
+const btnSymbolsMode    = document.getElementById('btnSymbolsMode');
 const libraryTitle      = document.getElementById('libraryTitle');
 const countLabel        = document.getElementById('countLabel');
 
@@ -159,6 +160,7 @@ const I18N = {
     search_clear: 'Limpiar búsqueda',
     mode_flags: 'Banderas',
     mode_platforms: 'Plataformas',
+    mode_symbols: 'Símbolos',
     view_list: 'Vista lista',
     view_grid: 'Vista grilla',
     flag_style_label: 'Estilo de Banderas',
@@ -301,6 +303,7 @@ const I18N = {
     search_placeholder: 'Buscar...',
     search_placeholder_flags: 'Buscar país, código ISO o continente...',
     search_placeholder_platforms: 'Buscar plataforma, tag o categoría...',
+    search_placeholder_symbols: 'Buscar símbolo, tag o categoría...',
     search_no_results: 'Sin resultados para «{{query}}»',
     empty_roster_title: 'Sin {{items}} seleccionadas',
     empty_roster_sub: 'Hacé clic en un {{item}} de la librería para agregarlo.',
@@ -308,10 +311,13 @@ const I18N = {
     aria_item_add: 'Click para agregar',
     library_title_flags: 'Librería',
     library_title_platforms: 'Plataformas',
+    library_title_symbols: 'Símbolos',
     count_label_flags: 'países',
     count_label_platforms: 'plataformas',
+    count_label_symbols: 'símbolos',
     placeholder_preview_flags: 'Seleccioná una bandera<br>para ver la vista previa',
     placeholder_preview_platforms: 'Seleccioná una plataforma<br>para ver la vista previa',
+    placeholder_preview_symbols: 'Seleccioná un símbolo<br>para ver la vista previa',
     filter_all: 'Todos',
     filter_popular: 'Populares',
     filter_esports: 'PUBG Esports',
@@ -328,12 +334,20 @@ const I18N = {
     filter_tech: 'Tech',
     filter_dev: 'Dev',
     filter_music: 'Música',
+    filter_combat: 'Combate',
+    filter_status: 'Estado',
+    filter_alert: 'Alerta',
+    filter_tactical: 'Táctico',
+    filter_support: 'Soporte',
     item_flag: 'bandera',
     item_flags: 'banderas',
     item_platform: 'plataforma',
     item_platforms: 'plataformas',
+    item_symbol: 'símbolo',
+    item_symbols: 'símbolos',
     mode_flags_label: 'Banderas',
     mode_platforms_label: 'Plataformas',
+    mode_symbols_label: 'Símbolos',
     toast_no_selection_share: 'No hay selección para compartir',
     toast_link_copied: 'Link copiado ✅',
     toast_link_copy_fail: 'No se pudo copiar el link',
@@ -396,6 +410,7 @@ const I18N = {
     search_clear: 'Clear search',
     mode_flags: 'Flags',
     mode_platforms: 'Platforms',
+    mode_symbols: 'Symbols',
     view_list: 'List view',
     view_grid: 'Grid view',
     flag_style_label: 'Flag Style',
@@ -538,6 +553,7 @@ const I18N = {
     search_placeholder: 'Search...',
     search_placeholder_flags: 'Search country, ISO code, or continent...',
     search_placeholder_platforms: 'Search platform, tag, or category...',
+    search_placeholder_symbols: 'Search symbol, tag, or category...',
     search_no_results: 'No results for “{{query}}”',
     empty_roster_title: 'No {{items}} selected',
     empty_roster_sub: 'Click a {{item}} in the library to add it.',
@@ -545,10 +561,13 @@ const I18N = {
     aria_item_add: 'Click to add',
     library_title_flags: 'Library',
     library_title_platforms: 'Platforms',
+    library_title_symbols: 'Symbols',
     count_label_flags: 'countries',
     count_label_platforms: 'platforms',
+    count_label_symbols: 'symbols',
     placeholder_preview_flags: 'Select a flag<br>to see the preview',
     placeholder_preview_platforms: 'Select a platform<br>to see the preview',
+    placeholder_preview_symbols: 'Select a symbol<br>to see the preview',
     filter_all: 'All',
     filter_popular: 'Popular',
     filter_esports: 'PUBG Esports',
@@ -565,12 +584,20 @@ const I18N = {
     filter_tech: 'Tech',
     filter_dev: 'Dev',
     filter_music: 'Music',
+    filter_combat: 'Combat',
+    filter_status: 'Status',
+    filter_alert: 'Alert',
+    filter_tactical: 'Tactical',
+    filter_support: 'Support',
     item_flag: 'flag',
     item_flags: 'flags',
     item_platform: 'platform',
     item_platforms: 'platforms',
+    item_symbol: 'symbol',
+    item_symbols: 'symbols',
     mode_flags_label: 'Flags',
     mode_platforms_label: 'Platforms',
+    mode_symbols_label: 'Symbols',
     toast_no_selection_share: 'No selection to share',
     toast_link_copied: 'Link copied ✅',
     toast_link_copy_fail: 'Could not copy the link',
@@ -626,9 +653,9 @@ function t(key, vars = {}) {
 }
 
 function getItemLabels() {
-  return currentMode === 'flags'
-    ? { singular: t('item_flag'), plural: t('item_flags') }
-    : { singular: t('item_platform'), plural: t('item_platforms') };
+  if (currentMode === 'platforms') return { singular: t('item_platform'), plural: t('item_platforms') };
+  if (currentMode === 'symbols') return { singular: t('item_symbol'), plural: t('item_symbols') };
+  return { singular: t('item_flag'), plural: t('item_flags') };
 }
 
 function getItemLabelForCount(count) {
@@ -637,12 +664,26 @@ function getItemLabelForCount(count) {
 }
 
 function getModeLabel(mode) {
-  return mode === 'platforms' ? t('mode_platforms_label') : t('mode_flags_label');
+  if (mode === 'platforms') return t('mode_platforms_label');
+  if (mode === 'symbols') return t('mode_symbols_label');
+  return t('mode_flags_label');
 }
 
 function updateModeLabels() {
-  if (libraryTitle) libraryTitle.textContent = currentMode === 'flags' ? t('library_title_flags') : t('library_title_platforms');
-  if (countLabel) countLabel.textContent = currentMode === 'flags' ? t('count_label_flags') : t('count_label_platforms');
+  if (libraryTitle) {
+    libraryTitle.textContent = currentMode === 'platforms'
+      ? t('library_title_platforms')
+      : currentMode === 'symbols'
+        ? t('library_title_symbols')
+        : t('library_title_flags');
+  }
+  if (countLabel) {
+    countLabel.textContent = currentMode === 'platforms'
+      ? t('count_label_platforms')
+      : currentMode === 'symbols'
+        ? t('count_label_symbols')
+        : t('count_label_flags');
+  }
 }
 
 function applyLanguage(lang) {
@@ -676,15 +717,25 @@ function applyLanguage(lang) {
   document.title = t('page_title');
   const metaDesc = document.querySelector('meta[name="description"]');
   if (metaDesc) metaDesc.setAttribute('content', t('page_description'));
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', t('page_title'));
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', t('page_description'));
+  const twitterTitle = document.querySelector('meta[name="twitter:title"]');
+  if (twitterTitle) twitterTitle.setAttribute('content', t('page_title'));
+  const twitterDesc = document.querySelector('meta[name="twitter:description"]');
+  if (twitterDesc) twitterDesc.setAttribute('content', t('page_description'));
 
   if (searchInput) {
     searchInput.dataset.placeholderFlags = t('search_placeholder_flags');
     searchInput.dataset.placeholderPlatforms = t('search_placeholder_platforms');
+    searchInput.dataset.placeholderSymbols = t('search_placeholder_symbols');
     searchInput.placeholder = t('search_placeholder');
   }
   if (searchModalInput) {
     searchModalInput.dataset.placeholderFlags = t('search_placeholder_flags');
     searchModalInput.dataset.placeholderPlatforms = t('search_placeholder_platforms');
+    searchModalInput.dataset.placeholderSymbols = t('search_placeholder_symbols');
     searchModalInput.placeholder = t('search_placeholder');
   }
 
@@ -712,8 +763,8 @@ let searchDropdownIdx = -1;     // keyboard nav index in dropdown
 let searchDebounceTimer = null;  // debounce timer for search
 let imageCache        = new Map(); // cache for loaded images
 let canvasZoom        = 1;         // canvas zoom level
-let currentMode       = 'flags';   // 'flags' or 'platforms'
-let currentDB         = db;        // current database (db or platformsDB)
+let currentMode       = 'flags';   // 'flags' | 'platforms' | 'symbols'
+let currentDB         = db;        // current database (db, platformsDB or symbolsDB)
 let currentFlagStyle  = 'realistic'; // realistic | rectangle | rounded | circle | icon | compact | square
 let platformsDBFiltered = null;
 let platformSupportPromise = null;
@@ -826,6 +877,19 @@ function renderFlagImage(item, size = 80, extraClass = '') {
   const sources = getFlagSources(item, size);
   return `<img class="${getFlagImgClass(extraClass)}" src="${escapeHtml(sources[0])}" data-fallbacks='${getFlagFallbackAttr(item, size)}' loading="lazy" alt="${escapeHtml(item.name)}"
              onerror="var f=JSON.parse(this.dataset.fallbacks||'[]'); if(f.length){this.src=f.shift(); this.dataset.fallbacks=JSON.stringify(f);} else { this.onerror=null; }">`;
+}
+
+function isFlagsMode() { return currentMode === 'flags'; }
+function isPlatformsMode() { return currentMode === 'platforms'; }
+function isSymbolsMode() { return currentMode === 'symbols'; }
+
+function renderSymbolIcon(item, sizeClass = '') {
+  const icon = escapeHtml(item.icon || 'circle');
+  const label = escapeHtml(item.name);
+  return `<span class="symbol-icon ${sizeClass}" style="background:${escapeHtml(item.color)}" aria-hidden="true">
+    <i data-lucide="${icon}"></i>
+    <span class="symbol-fallback">${escapeHtml((item.name || item.tag || '?').charAt(0).toUpperCase())}</span>
+  </span><span class="sr-only">${label}</span>`;
 }
 
 // Platform logo helper (primary)
@@ -1425,9 +1489,11 @@ function init() {
       }
       const sources = savedMode === 'platforms'
         ? [platformsDB]
-        : savedMode === 'flags'
-          ? [db]
-          : [db, platformsDB];
+        : savedMode === 'symbols'
+          ? [symbolsDB]
+          : savedMode === 'flags'
+            ? [db]
+            : [db, platformsDB, symbolsDB];
       saved.forEach(identifier => {
         const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
         if (c) selectedSlots.push(c);
@@ -1528,6 +1594,7 @@ function init() {
   // ── Mode toggle (flags/platforms) ──
   btnFlagsMode.addEventListener('click', () => requestModeChange('flags'));
   btnPlatformsMode.addEventListener('click', () => requestModeChange('platforms'));
+  if (btnSymbolsMode) btnSymbolsMode.addEventListener('click', () => requestModeChange('symbols'));
   
   // ── Flag style selector ──
   const flagStyleSelect = document.getElementById('flagStyleSelect');
@@ -1980,7 +2047,7 @@ function loadRoster(e) {
     try {
       const data = JSON.parse(ev.target.result);
       if (!data.slots || !Array.isArray(data.slots)) throw new Error('Formato inválido');
-      const modeFromFile = data.mode === 'platforms' || data.mode === 'flags' ? data.mode : null;
+      const modeFromFile = data.mode === 'platforms' || data.mode === 'symbols' || data.mode === 'flags' ? data.mode : null;
       if (modeFromFile && modeFromFile !== currentMode) {
         setMode(modeFromFile, { skipConfirm: true, skipUndo: true, silent: true });
       }
@@ -1988,9 +2055,11 @@ function loadRoster(e) {
       selectedSlots = [];
       const sources = modeFromFile === 'platforms'
         ? [platformsDB]
-        : modeFromFile === 'flags'
-          ? [db]
-          : [db, platformsDB];
+        : modeFromFile === 'symbols'
+          ? [symbolsDB]
+          : modeFromFile === 'flags'
+            ? [db]
+            : [db, platformsDB, symbolsDB];
       data.slots.forEach(identifier => {
         const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
         if (c) selectedSlots.push(c);
@@ -2010,12 +2079,12 @@ function loadRoster(e) {
 
 function applySharedData(data) {
   if (!data || !Array.isArray(data.slots)) return false;
-  const modeFromData = data.mode === 'platforms' || data.mode === 'flags' ? data.mode : currentMode;
+  const modeFromData = data.mode === 'platforms' || data.mode === 'symbols' || data.mode === 'flags' ? data.mode : currentMode;
   if (modeFromData !== currentMode) {
     setMode(modeFromData, { skipConfirm: true, skipUndo: true, silent: true });
   }
   selectedSlots = [];
-  const sources = modeFromData === 'platforms' ? [platformsDB] : [db];
+  const sources = modeFromData === 'platforms' ? [platformsDB] : modeFromData === 'symbols' ? [symbolsDB] : [db];
   data.slots.forEach(identifier => {
     const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
     if (c) selectedSlots.push(c);
@@ -2044,8 +2113,7 @@ function loadShareFromUrl() {
 function processFilter(countries) {
   const q = searchInput ? normalizeSearchText(searchInput.value) : '';
   return countries.filter(c => {
-    // Different search fields for flags vs platforms
-    const searchFields = currentMode === 'flags'
+    const searchFields = isFlagsMode()
       ? [c.name, c.iso, c.tag]
       : [c.name, c.tag, c.category];
     
@@ -2054,7 +2122,7 @@ function processFilter(countries) {
     );
     let matchTag = true;
     
-    if (currentMode === 'flags') {
+    if (isFlagsMode()) {
       switch (currentFilter) {
         case 'top':      matchTag = c.filters.includes('top'); break;
         case 'esports':  matchTag = c.filters.includes('esports'); break;
@@ -2071,8 +2139,7 @@ function processFilter(countries) {
           break;
         case 'oceania':  matchTag = c.filters.some(f => f.toLowerCase().startsWith('ocean')); break;
       }
-    } else {
-      // Platforms mode
+    } else if (isPlatformsMode()) {
       switch (currentFilter) {
         case 'top':      matchTag = c.filters.includes('top'); break;
         case 'social':   matchTag = c.category === 'Social'; break;
@@ -2087,6 +2154,15 @@ function processFilter(countries) {
         case 'design':   matchTag = c.category === 'Diseño'; break;
         case 'education': matchTag = c.category === 'Educación'; break;
         case 'communication': matchTag = c.category === 'Comunicación'; break;
+      }
+    } else {
+      switch (currentFilter) {
+        case 'top':      matchTag = c.filters.includes('top'); break;
+        case 'combat':   matchTag = c.filters.includes('combat'); break;
+        case 'status':   matchTag = c.filters.includes('status'); break;
+        case 'alert':    matchTag = c.filters.includes('alert'); break;
+        case 'tactical': matchTag = c.filters.includes('tactical'); break;
+        case 'support':  matchTag = c.filters.includes('support'); break;
       }
     }
     return matchSearch && matchTag;
@@ -2138,16 +2214,14 @@ function renderLibrary() {
       }
     }
 
-    // Different rendering for flags vs platforms
-    if (currentMode === 'flags') {
+    if (isFlagsMode()) {
       div.innerHTML = `
         ${renderFlagImage(c, 80)}
         <div class="item-name" title="${c.name}">${displayName}</div>
         <div class="item-tag">${c.iso.toUpperCase()}</div>
       `;
       div.setAttribute('data-tooltip', `${c.tag} • ${c.filters.filter(f => f !== 'top').join(', ')}`);
-    } else {
-      // Platforms mode - use logo with fallback to colored square with initial
+    } else if (isPlatformsMode()) {
       const initial = c.name.charAt(0).toUpperCase();
       const logo = getPlatformLogoUrl(c);
       div.innerHTML = `
@@ -2155,6 +2229,13 @@ function renderLibrary() {
              style="background: ${c.color}; padding: 4px;"
              onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
         <div class="platform-fallback" style="display:none; width:26px; height:18px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white;">${initial}</div>
+        <div class="item-name" title="${c.name}">${displayName}</div>
+        <div class="item-tag">${c.category}</div>
+      `;
+      div.setAttribute('data-tooltip', `${c.tag} • ${c.category}`);
+    } else {
+      div.innerHTML = `
+        ${renderSymbolIcon(c)}
         <div class="item-name" title="${c.name}">${displayName}</div>
         <div class="item-tag">${c.category}</div>
       `;
@@ -2246,11 +2327,10 @@ function renderRoster() {
     div.draggable = true;
     div.dataset.idx = i;
     
-    // Different rendering for flags vs platforms
     let imgHtml = '';
-    if (currentMode === 'flags') {
+    if (isFlagsMode()) {
       imgHtml = renderFlagImage(c, 80);
-    } else {
+    } else if (isPlatformsMode()) {
       const initial = c.name.charAt(0).toUpperCase();
       const logo = getPlatformLogoUrl(c);
       imgHtml = `<img class="flag-img platform-logo" 
@@ -2258,6 +2338,8 @@ function renderRoster() {
            alt="${c.name}"
            onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
       <div class="platform-fallback" style="display:none; width:26px; height:18px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white;">${initial}</div>`;
+    } else {
+      imgHtml = renderSymbolIcon(c, 'symbol-icon-sm');
     }
     
     div.innerHTML = `
@@ -2267,7 +2349,7 @@ function renderRoster() {
       <div class="slot-num">${num}</div>
       ${imgHtml}
       <div class="item-name">${c.name}</div>
-      <div class="item-tag">${currentMode === 'flags' ? c.iso.toUpperCase() : c.category}</div>
+      <div class="item-tag">${isFlagsMode() ? c.iso.toUpperCase() : c.category}</div>
       <button class="slot-del" title="Eliminar (Del)" data-idx="${i}">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2319,6 +2401,7 @@ function renderRoster() {
     frag.appendChild(div);
   });
   selectedList.appendChild(frag);
+  if (window.lucide) lucide.createIcons({ nodes: [...selectedList.querySelectorAll('[data-lucide]')] });
 }
 
 // ─── UPDATE UI ───────────────────────────────────────────────
@@ -2553,6 +2636,147 @@ function drawBadgeOnCanvas(context, text, S) {
   context.restore();
 }
 
+function roundedRectPath(context, x, y, w, h, r) {
+  context.moveTo(x + r, y);
+  context.lineTo(x + w - r, y);
+  context.quadraticCurveTo(x + w, y, x + w, y + r);
+  context.lineTo(x + w, y + h - r);
+  context.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  context.lineTo(x + r, y + h);
+  context.quadraticCurveTo(x, y + h, x, y + h - r);
+  context.lineTo(x, y + r);
+  context.quadraticCurveTo(x, y, x + r, y);
+}
+
+function drawSymbolGlyph(context, icon, cx, cy, size, color) {
+  const s = size;
+  context.save();
+  context.strokeStyle = color;
+  context.fillStyle = color;
+  context.lineWidth = Math.max(3, s * 0.08);
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.beginPath();
+
+  switch (icon) {
+    case 'skull':
+      context.arc(cx, cy - s * 0.08, s * 0.33, Math.PI * 0.08, Math.PI * 1.92);
+      context.fill();
+      context.fillStyle = '#101318';
+      context.beginPath(); context.arc(cx - s * 0.13, cy - s * 0.12, s * 0.06, 0, Math.PI * 2); context.fill();
+      context.beginPath(); context.arc(cx + s * 0.13, cy - s * 0.12, s * 0.06, 0, Math.PI * 2); context.fill();
+      context.fillRect(cx - s * 0.18, cy + s * 0.16, s * 0.36, s * 0.14);
+      break;
+    case 'crown':
+      context.moveTo(cx - s * 0.38, cy + s * 0.18);
+      context.lineTo(cx - s * 0.28, cy - s * 0.22);
+      context.lineTo(cx - s * 0.08, cy + s * 0.02);
+      context.lineTo(cx, cy - s * 0.34);
+      context.lineTo(cx + s * 0.08, cy + s * 0.02);
+      context.lineTo(cx + s * 0.28, cy - s * 0.22);
+      context.lineTo(cx + s * 0.38, cy + s * 0.18);
+      context.closePath();
+      context.fill();
+      break;
+    case 'trophy':
+      context.rect(cx - s * 0.18, cy - s * 0.28, s * 0.36, s * 0.32);
+      context.moveTo(cx - s * 0.18, cy - s * 0.16);
+      context.quadraticCurveTo(cx - s * 0.42, cy - s * 0.18, cx - s * 0.38, cy + s * 0.04);
+      context.moveTo(cx + s * 0.18, cy - s * 0.16);
+      context.quadraticCurveTo(cx + s * 0.42, cy - s * 0.18, cx + s * 0.38, cy + s * 0.04);
+      context.moveTo(cx, cy + s * 0.04); context.lineTo(cx, cy + s * 0.28);
+      context.moveTo(cx - s * 0.22, cy + s * 0.32); context.lineTo(cx + s * 0.22, cy + s * 0.32);
+      context.stroke();
+      break;
+    case 'triangle-alert':
+      context.moveTo(cx, cy - s * 0.38);
+      context.lineTo(cx + s * 0.42, cy + s * 0.34);
+      context.lineTo(cx - s * 0.42, cy + s * 0.34);
+      context.closePath();
+      context.stroke();
+      context.beginPath(); context.moveTo(cx, cy - s * 0.12); context.lineTo(cx, cy + s * 0.12); context.stroke();
+      context.beginPath(); context.arc(cx, cy + s * 0.24, s * 0.025, 0, Math.PI * 2); context.fill();
+      break;
+    case 'star':
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + i * Math.PI / 5;
+        const r = i % 2 === 0 ? s * 0.42 : s * 0.18;
+        const x = cx + Math.cos(a) * r;
+        const y = cy + Math.sin(a) * r;
+        if (i === 0) context.moveTo(x, y); else context.lineTo(x, y);
+      }
+      context.closePath();
+      context.fill();
+      break;
+    case 'target':
+    case 'crosshair':
+      context.arc(cx, cy, s * 0.34, 0, Math.PI * 2);
+      context.moveTo(cx + s * 0.18, cy); context.arc(cx, cy, s * 0.18, 0, Math.PI * 2);
+      context.moveTo(cx - s * 0.48, cy); context.lineTo(cx - s * 0.24, cy);
+      context.moveTo(cx + s * 0.24, cy); context.lineTo(cx + s * 0.48, cy);
+      context.moveTo(cx, cy - s * 0.48); context.lineTo(cx, cy - s * 0.24);
+      context.moveTo(cx, cy + s * 0.24); context.lineTo(cx, cy + s * 0.48);
+      context.stroke();
+      break;
+    case 'shield':
+      context.moveTo(cx, cy - s * 0.42);
+      context.lineTo(cx + s * 0.34, cy - s * 0.24);
+      context.lineTo(cx + s * 0.26, cy + s * 0.24);
+      context.quadraticCurveTo(cx, cy + s * 0.44, cx - s * 0.26, cy + s * 0.24);
+      context.lineTo(cx - s * 0.34, cy - s * 0.24);
+      context.closePath();
+      context.stroke();
+      break;
+    case 'heart-pulse':
+      context.moveTo(cx, cy + s * 0.28);
+      context.bezierCurveTo(cx - s * 0.42, cy, cx - s * 0.32, cy - s * 0.34, cx, cy - s * 0.14);
+      context.bezierCurveTo(cx + s * 0.32, cy - s * 0.34, cx + s * 0.42, cy, cx, cy + s * 0.28);
+      context.stroke();
+      context.beginPath();
+      context.moveTo(cx - s * 0.28, cy + s * 0.02);
+      context.lineTo(cx - s * 0.08, cy + s * 0.02);
+      context.lineTo(cx, cy - s * 0.12);
+      context.lineTo(cx + s * 0.08, cy + s * 0.1);
+      context.lineTo(cx + s * 0.28, cy + s * 0.1);
+      context.stroke();
+      break;
+    case 'radar':
+      context.arc(cx, cy, s * 0.38, 0, Math.PI * 2);
+      context.moveTo(cx + s * 0.24, cy); context.arc(cx, cy, s * 0.24, 0, Math.PI * 2);
+      context.moveTo(cx, cy); context.lineTo(cx + s * 0.28, cy - s * 0.28);
+      context.stroke();
+      break;
+    default:
+      context.font = `900 ${Math.floor(s * 0.72)}px ${fontSelect.value || 'Arial Black'}, sans-serif`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(String(icon || '?').charAt(0).toUpperCase(), cx, cy + s * 0.02);
+  }
+  context.restore();
+}
+
+function drawSymbolToCanvas(context, item, number, S) {
+  context.clearRect(0, 0, S, S);
+  const baseColor = item.color || '#334155';
+  const bg = bgTransparent.checked ? baseColor : (bgColorInput.value || '#000000');
+  context.save();
+  context.fillStyle = bgTransparent.checked ? baseColor : bg;
+  context.fillRect(0, 0, S, S);
+
+  const pad = S * 0.12;
+  context.beginPath();
+  roundedRectPath(context, pad, pad, S - pad * 2, S - pad * 2, S * 0.16);
+  context.fillStyle = baseColor;
+  context.fill();
+  context.strokeStyle = 'rgba(255,255,255,0.42)';
+  context.lineWidth = Math.max(1, S * 0.015);
+  context.stroke();
+
+  drawSymbolGlyph(context, item.icon, S / 2, S / 2, S * 0.56, '#FFFFFF');
+  context.restore();
+  if (showNumber.checked) drawBadgeOnCanvas(context, String(number), S);
+}
+
 function updatePreview(country, number) {
   canvasPlaceholder.classList.add('hidden');
   previewCountryName.textContent = country.name;
@@ -2560,6 +2784,11 @@ function updatePreview(country, number) {
 
   const S = getPreviewSize();
   if (canvas.width !== S) { canvas.width = S; canvas.height = S; }
+
+  if (isSymbolsMode()) {
+    drawSymbolToCanvas(ctx, country, number, S);
+    return;
+  }
 
   const cacheKey = `${country.iso || country.tag || country.id}_${S}_${currentMode}_${currentFlagStyle}`;
   
@@ -2628,11 +2857,11 @@ function showPreviewModal() {
     div.setAttribute('tabindex', '0');
     div.setAttribute('aria-label', `${c.name}, número ${num}`);
     
-    // Different image source for flags vs platforms with fallback
+    // Different image source for flags, platforms and symbols with fallback
     let imgHtml = '';
-    if (currentMode === 'flags') {
+    if (isFlagsMode()) {
       imgHtml = renderFlagImage(c, 80, 'modal-flag-img');
-    } else {
+    } else if (isPlatformsMode()) {
       const initial = c.name.charAt(0).toUpperCase();
       const logo = getPlatformLogoUrl(c);
       imgHtml = `<img class="platform-logo" 
@@ -2640,6 +2869,8 @@ function showPreviewModal() {
            src="${logo.primary}" data-fallback="${logo.fallback}" alt="${c.name}" loading="lazy"
            onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
       <div class="platform-fallback" style="display:none; width:56px; height:38px; background:${c.color}; border-radius:4px; flex-shrink:0; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:white;">${initial}</div>`;
+    } else {
+      imgHtml = renderSymbolIcon(c, 'symbol-icon-lg');
     }
     
     div.innerHTML = `
@@ -2665,6 +2896,8 @@ function showPreviewModal() {
   previewModal.setAttribute('aria-modal', 'true');
   previewModal.setAttribute('role', 'dialog');
   document.body.style.overflow = 'hidden';
+
+  if (window.lucide) lucide.createIcons({ nodes: [...modalGrid.querySelectorAll('[data-lucide]')] });
   
   // Focus trap
   const focusableElements = previewModal.querySelectorAll('button, [tabindex="0"]');
@@ -2844,20 +3077,29 @@ function generateBat() {
 function generatePreviewHtml() {
   const startNum = getStartNum();
   const items = selectedSlots.map((c,i) => {
-    const imgSrc = currentMode === 'flags'
+    if (isSymbolsMode()) {
+      return `<div class="item"><div class="symbol-preview" style="background:${escapeHtml(c.color)}">${escapeHtml((c.name || c.tag || '?').charAt(0).toUpperCase())}</div><span class="n">${i+startNum}</span><span class="nm">${escapeHtml(c.name)}</span></div>`;
+    }
+    const imgSrc = isFlagsMode()
       ? `https://flagcdn.com/w80/${c.iso}.png`
       : getPlatformLogoUrl(c).primary;
-    const imgStyle = currentMode === 'platforms'
+    const imgStyle = isPlatformsMode()
       ? ` style="background:${escapeHtml(c.color)};padding:6px;border-radius:6px;"`
       : '';
     return `<div class="item"><img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(c.name)}"${imgStyle}><span class="n">${i+startNum}</span><span class="nm">${escapeHtml(c.name)}</span></div>`;
   }).join('');
-  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview FlagForge</title><style>body{background:#0d1117;color:#e6edf3;font-family:system-ui;display:flex;flex-wrap:wrap;gap:10px;padding:20px;}.item{display:flex;flex-direction:column;align-items:center;gap:4px;background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px;width:120px;}img{width:80px;height:54px;object-fit:contain;border-radius:4px;background:#000;}.n{font-weight:800;color:#2f81f7;font-size:1.1rem;}.nm{font-size:.7rem;color:#8b949e;text-align:center;}</style></head><body>${items}</body></html>`;
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview FlagForge</title><style>body{background:#0d1117;color:#e6edf3;font-family:system-ui;display:flex;flex-wrap:wrap;gap:10px;padding:20px;}.item{display:flex;flex-direction:column;align-items:center;gap:4px;background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:10px;width:120px;}img{width:80px;height:54px;object-fit:contain;border-radius:4px;background:#000;}.symbol-preview{width:80px;height:80px;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:2.2rem;border:1px solid rgba(255,255,255,.35);}.n{font-weight:800;color:#2f81f7;font-size:1.1rem;}.nm{font-size:.7rem;color:#8b949e;text-align:center;}</style></head><body>${items}</body></html>`;
 }
 
 // ─── FETCH + DRAW (for export) ───────────────────────────────
 function fetchImageAndDraw(item, number, can, ctx2d, S) {
   return new Promise(resolve => {
+    if (isSymbolsMode()) {
+      drawSymbolToCanvas(ctx2d, item, number, S);
+      can.toBlob(blob => resolve(blob), 'image/png');
+      return;
+    }
+
     const img = new Image();
     img.crossOrigin = 'anonymous';
     
@@ -2958,10 +3200,12 @@ function buildSearchResults(rawQuery) {
 
     let metaMatch = false;
     if (!directName && !directOther) {
+      const categoryMatch = normalizeSearchText(c.category || '').includes(q);
+      const filterMatch = Array.isArray(c.filters) && c.filters.some(f => normalizeSearchText(f).includes(q));
       if (currentMode === 'flags') {
-        metaMatch = Array.isArray(c.filters) && c.filters.some(f => normalizeSearchText(f).includes(q));
+        metaMatch = filterMatch;
       } else {
-        metaMatch = normalizeSearchText(c.category || '').includes(q);
+        metaMatch = categoryMatch || filterMatch;
       }
     }
 
@@ -3035,12 +3279,12 @@ function updateSearchDropdown() {
         ? c.filters.filter(f => f !== 'top').join(', ')
         : c.category;
       
-      const tagDisplay = currentMode === 'flags' ? c.iso.toUpperCase() : c.category;
+      const tagDisplay = isFlagsMode() ? c.iso.toUpperCase() : (c.tag || c.category);
       
       let imgHtml = '';
-      if (currentMode === 'flags') {
+      if (isFlagsMode()) {
         imgHtml = renderFlagImage(c, 80, 'dd-flag');
-      } else {
+      } else if (isPlatformsMode()) {
         const initial = c.name.charAt(0).toUpperCase();
         const logo = getPlatformLogoUrl(c);
         imgHtml = `<img class="dd-flag platform-logo" 
@@ -3048,6 +3292,8 @@ function updateSearchDropdown() {
              src="${logo.primary}" data-fallback="${logo.fallback}" alt="${c.name}"
              onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
         <div class="platform-fallback" style="display:none; width:32px; height:22px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.75rem; font-weight:700; color:white;">${initial}</div>`;
+      } else {
+        imgHtml = renderSymbolIcon(c, 'symbol-icon-xs');
       }
       
       div.innerHTML = `
@@ -3096,6 +3342,7 @@ function updateSearchDropdown() {
     searchDropdownList.appendChild(frag);
     searchDropdown.classList.remove('hidden');
     searchDropdown.setAttribute('role', 'listbox');
+    if (window.lucide) lucide.createIcons({ nodes: [...searchDropdownList.querySelectorAll('[data-lucide]')] });
   }, 150); // Debounce dropdown updates
 }
 
@@ -3277,8 +3524,8 @@ function updateSearchModalResults() {
           + c.name.slice(nameIdx + q.length);
       }
       
-      // Different rendering for flags vs platforms
-      if (currentMode === 'flags') {
+      // Different rendering for flags, platforms and symbols
+      if (isFlagsMode()) {
         const imgHtml = renderFlagImage(c, 80);
 
         div.innerHTML = `
@@ -3286,7 +3533,7 @@ function updateSearchModalResults() {
           <div class="item-name" title="${c.name}">${displayName}</div>
           <div class="item-tag">${c.iso.toUpperCase()}</div>
         `;
-      } else {
+      } else if (isPlatformsMode()) {
         const initial = c.name.charAt(0).toUpperCase();
         const logo = getPlatformLogoUrl(c);
         div.innerHTML = `
@@ -3294,6 +3541,12 @@ function updateSearchModalResults() {
                style="background: ${c.color}; padding: 4px;"
                onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
           <div class="platform-fallback" style="display:none; width:26px; height:18px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white;">${initial}</div>
+          <div class="item-name" title="${c.name}">${displayName}</div>
+          <div class="item-tag">${c.category}</div>
+        `;
+      } else {
+        div.innerHTML = `
+          ${renderSymbolIcon(c)}
           <div class="item-name" title="${c.name}">${displayName}</div>
           <div class="item-tag">${c.category}</div>
         `;
@@ -3448,17 +3701,18 @@ function requestModeChange(mode) {
   });
 }
 
-// ─── MODE TOGGLE (FLAGS/PLATFORMS) ────────────────────────────────
+// ─── MODE TOGGLE ─────────────────────────────────────────────────
 function setMode(mode, options = {}) {
   const { skipConfirm = false, skipUndo = false, silent = false } = options;
   if (currentMode === mode) return;
   
   currentMode = mode;
-  currentDB = mode === 'flags' ? db : (platformsDBFiltered || platformsDB);
+  currentDB = mode === 'flags' ? db : mode === 'symbols' ? symbolsDB : (platformsDBFiltered || platformsDB);
   
   // Update UI
   btnFlagsMode.classList.toggle('active', mode === 'flags');
   btnPlatformsMode.classList.toggle('active', mode === 'platforms');
+  if (btnSymbolsMode) btnSymbolsMode.classList.toggle('active', mode === 'symbols');
   
   // Update labels
   updateModeLabels();
@@ -3469,7 +3723,9 @@ function setMode(mode, options = {}) {
   syncModeUIStrings();
   document.documentElement.classList.toggle('platforms-mode', mode === 'platforms');
   document.body.classList.toggle('platforms-mode', mode === 'platforms');
-  if (mode === 'platforms') {
+  document.documentElement.classList.toggle('symbols-mode', mode === 'symbols');
+  document.body.classList.toggle('symbols-mode', mode === 'symbols');
+  if (mode === 'platforms' || mode === 'symbols') {
     bgColorInput.value = '#000000';
     bgTransparent.checked = false;
   }
@@ -3512,7 +3768,7 @@ function updateFiltersForMode() {
   const filtersContainer = document.querySelector('.filters');
   if (!filtersContainer) return;
   
-  if (currentMode === 'flags') {
+  if (isFlagsMode()) {
     filtersContainer.innerHTML = `
       <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
       <button class="filter-btn" data-filter="top">
@@ -3531,7 +3787,7 @@ function updateFiltersForMode() {
       <button class="filter-btn" data-filter="africa">${t('filter_africa')}</button>
       <button class="filter-btn" data-filter="oceania">${t('filter_oceania')}</button>
     `;
-  } else {
+  } else if (isPlatformsMode()) {
     filtersContainer.innerHTML = `
       <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
       <button class="filter-btn" data-filter="top">
@@ -3543,6 +3799,28 @@ function updateFiltersForMode() {
       <button class="filter-btn" data-filter="tech">${t('filter_tech')}</button>
       <button class="filter-btn" data-filter="dev">${t('filter_dev')}</button>
       <button class="filter-btn" data-filter="music">${t('filter_music')}</button>
+    `;
+  } else {
+    filtersContainer.innerHTML = `
+      <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
+      <button class="filter-btn" data-filter="top">
+        <i data-lucide="star"></i>${t('filter_popular')}
+      </button>
+      <button class="filter-btn" data-filter="combat">
+        <i data-lucide="crosshair"></i>${t('filter_combat')}
+      </button>
+      <button class="filter-btn" data-filter="status">
+        <i data-lucide="crown"></i>${t('filter_status')}
+      </button>
+      <button class="filter-btn" data-filter="alert">
+        <i data-lucide="triangle-alert"></i>${t('filter_alert')}
+      </button>
+      <button class="filter-btn" data-filter="tactical">
+        <i data-lucide="shield"></i>${t('filter_tactical')}
+      </button>
+      <button class="filter-btn" data-filter="support">
+        <i data-lucide="heart-pulse"></i>${t('filter_support')}
+      </button>
     `;
   }
   
@@ -3563,21 +3841,26 @@ function updateFiltersForMode() {
 }
 
 function syncModeUIStrings() {
-  const isPlatforms = currentMode === 'platforms';
-
   const applyPlaceholder = (el) => {
     if (!el) return;
     const phFlags = el.dataset.placeholderFlags;
     const phPlatforms = el.dataset.placeholderPlatforms;
-    if (!phFlags && !phPlatforms) return;
-    el.placeholder = isPlatforms ? (phPlatforms || el.placeholder) : (phFlags || el.placeholder);
+    const phSymbols = el.dataset.placeholderSymbols;
+    if (!phFlags && !phPlatforms && !phSymbols) return;
+    el.placeholder = isSymbolsMode()
+      ? (phSymbols || el.placeholder)
+      : isPlatformsMode()
+        ? (phPlatforms || el.placeholder)
+        : (phFlags || el.placeholder);
   };
 
   applyPlaceholder(searchInput);
   applyPlaceholder(searchModalInput);
 
   if (canvasPlaceholderText) {
-    canvasPlaceholderText.innerHTML = isPlatforms
+    canvasPlaceholderText.innerHTML = isSymbolsMode()
+      ? t('placeholder_preview_symbols')
+      : isPlatformsMode()
       ? t('placeholder_preview_platforms')
       : t('placeholder_preview_flags');
   }
@@ -3589,14 +3872,14 @@ function updateStats() {
   const els = ids.map(id => document.getElementById(id));
   if (els.some(el => !el)) return;
   
-  if (currentMode === 'flags') {
+  if (isFlagsMode()) {
     els[0].textContent = db.length;
     els[1].textContent = db.filter(c => c.filters.includes('América')).length;
     els[2].textContent = db.filter(c => c.filters.includes('Europa')).length;
     els[3].textContent = db.filter(c => c.filters.includes('Asia')).length;
     els[4].textContent = db.filter(c => c.filters.some(f => f.toLowerCase().startsWith('fric') || f === 'África')).length;
     els[5].textContent = db.filter(c => c.filters.some(f => f.toLowerCase().startsWith('ocean') || f === 'Oceanía')).length;
-  } else {
+  } else if (isPlatformsMode()) {
     const src = currentDB || platformsDB;
     els[0].textContent = src.length;
     els[1].textContent = src.filter(c => c.category === 'Social').length;
@@ -3604,6 +3887,14 @@ function updateStats() {
     els[3].textContent = src.filter(c => c.category === 'Gaming').length;
     els[4].textContent = src.filter(c => c.category === 'Tech').length;
     els[5].textContent = src.filter(c => c.category === 'Dev').length;
+  } else {
+    const src = currentDB || symbolsDB;
+    els[0].textContent = src.length;
+    els[1].textContent = src.filter(c => c.category === 'Combate').length;
+    els[2].textContent = src.filter(c => c.category === 'Estado').length;
+    els[3].textContent = src.filter(c => c.category === 'Alerta').length;
+    els[4].textContent = src.filter(c => c.category === 'Táctico').length;
+    els[5].textContent = src.filter(c => c.category === 'Soporte').length;
   }
 }
 

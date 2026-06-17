@@ -1,11 +1,12 @@
 {
-  "name": "PUBG Observer",
-  "short_name": "PUBG Observer",
-  "description": "Editor profesional de banderas para PUBG Observer con números personalizados",
+  "name": "FlagForge Studio",
+  "short_name": "FlagForge",
+  "description": "Editor profesional de banderas y logos numerados para PUBG Observer",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#0d1117",
-  "theme_color": "#2f81f7",
+  "background_color": "#101318",
+  "theme_color": "#101318",
   "orientation": "any",
   "icons": [
     {

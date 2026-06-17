@@ -258,6 +258,11 @@ function testHtmlMeta() {
   check(/<meta name="viewport"/i.test(html), 'Missing viewport meta');
   check(/Content-Security-Policy/i.test(html), 'Missing CSP meta');
   check(/<link rel="manifest" href="manifest\.json"/i.test(html), 'Missing manifest link');
+  check(/<link rel="canonical" href="https:\/\/skuuill\.github\.io\/WebBanderasPUBG\/"/i.test(html), 'Missing GitHub Pages canonical URL');
+  check(/property="og:title"/i.test(html), 'Missing Open Graph title');
+  check(/property="og:description"/i.test(html), 'Missing Open Graph description');
+  check(/property="og:image"/i.test(html), 'Missing Open Graph image');
+  check(/name="twitter:card"/i.test(html), 'Missing Twitter card meta');
 }
 
 function testDataI18nAttrFormat() {
@@ -424,6 +429,67 @@ function testInstallerBat() {
   check(js.includes('No se requieren librerias ni paquetes adicionales'), 'Generated bat should explain dependencies');
 }
 
+function testGitHubPagesFiles() {
+  const requiredFiles = ['.nojekyll', 'robots.txt', 'sitemap.xml', '404.html', path.join('.github', 'workflows', 'pages.yml')];
+  const missing = requiredFiles.filter(file => !fs.existsSync(path.join(ROOT, file)));
+  check(missing.length === 0, `Missing GitHub Pages files: ${missing.join(', ')}`);
+
+  const robots = read('robots.txt');
+  check(robots.includes('Sitemap: https://skuuill.github.io/WebBanderasPUBG/sitemap.xml'), 'robots.txt should point to sitemap');
+
+  const sitemap = read('sitemap.xml');
+  check(sitemap.includes('<loc>https://skuuill.github.io/WebBanderasPUBG/</loc>'), 'sitemap should include canonical site URL');
+
+  const notFound = read('404.html');
+  check(notFound.includes('/WebBanderasPUBG/'), '404.html should link back to GitHub Pages app root');
+
+  const workflow = read(path.join('.github', 'workflows', 'pages.yml'));
+  check(workflow.includes('npm test'), 'GitHub Pages workflow should run tests');
+  check(workflow.includes('actions/deploy-pages'), 'GitHub Pages workflow should deploy Pages');
+  check(workflow.includes('mkdir -p _site'), 'GitHub Pages workflow should prepare a clean _site artifact');
+  check(workflow.includes('path: _site'), 'GitHub Pages workflow should upload _site instead of the repo root');
+  check(!workflow.includes('path: .\n'), 'GitHub Pages workflow should not publish the full repository root');
+}
+
+function testSymbolsMode() {
+  const html = read('index.html');
+  const js = read(path.join('js', 'app.js'));
+  const css = read(path.join('css', 'style.css'));
+  const symbolsSrc = read(path.join('js', 'symbols_db.js'));
+
+  check(html.includes('id="btnSymbolsMode"'), 'Missing symbols mode button');
+  check(html.includes('js/symbols_db.js'), 'Missing symbols database script');
+  check(js.includes('function drawSymbolToCanvas'), 'Missing symbol canvas renderer');
+  check(js.includes("requestModeChange('symbols')"), 'Missing symbols mode listener');
+  check(css.includes('.symbol-icon'), 'Missing symbol icon styles');
+
+  let symbols = [];
+  try {
+    symbols = Function(`${symbolsSrc}\nreturn symbolsDB;`)();
+  } catch (error) {
+    check(false, `symbolsDB should be parseable: ${error.message}`);
+    return;
+  }
+
+  check(Array.isArray(symbols), 'symbolsDB should be an array');
+  check(symbols.length >= 10, `symbolsDB should include at least 10 symbols, found ${symbols.length}`);
+
+  const tags = symbols.map(symbol => symbol.tag).filter(Boolean);
+  const duplicates = tags.filter((tag, idx) => tags.indexOf(tag) !== idx);
+  check(duplicates.length === 0, `symbolsDB has duplicate tags: ${[...new Set(duplicates)].join(', ')}`);
+
+  const missingFields = symbols
+    .map((symbol, idx) => ({ symbol, idx }))
+    .filter(({ symbol }) => !symbol.tag || !symbol.name || !symbol.category || !symbol.color || !symbol.icon)
+    .map(({ symbol, idx }) => symbol.tag || symbol.name || `index ${idx}`);
+  check(missingFields.length === 0, `symbolsDB entries missing required fields: ${missingFields.join(', ')}`);
+
+  const invalidColors = symbols
+    .filter(symbol => !/^#[0-9A-Fa-f]{6}$/.test(symbol.color))
+    .map(symbol => symbol.tag);
+  check(invalidColors.length === 0, `symbolsDB colors must be hex colors: ${invalidColors.join(', ')}`);
+}
+
 function run() {
   testI18nKeys();
   testRequiredIds();
@@ -443,6 +509,8 @@ function run() {
   testFlagStyles();
   testCompetitiveMode();
   testInstallerBat();
+  testGitHubPagesFiles();
+  testSymbolsMode();
 
   if (failures.length) {
     console.error('Tests failed:');

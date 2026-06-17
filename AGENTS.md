@@ -1,7 +1,7 @@
 # FlagForge Studio - Agent Notes
 
 ## Purpose
-FlagForge Studio is a static, client-only PWA for creating numbered PUBG Observer flag/logo packs. It runs from `index.html`, uses vanilla JavaScript, and exports ZIP files in the browser.
+FlagForge Studio is a static, client-only PWA for creating numbered PUBG Observer flag/logo/symbol packs. It runs from `index.html`, uses vanilla JavaScript, and exports ZIP files in the browser.
 
 ## Commands
 - `npm test` - run the static integrity tests.
@@ -13,6 +13,7 @@ FlagForge Studio is a static, client-only PWA for creating numbered PUBG Observe
 - `js/app.js` - state, rendering, i18n, search, canvas preview, share links, save/load, export.
 - `js/db.js` - country/flag database.
 - `js/platforms_db.js` - platform/logo database.
+- `js/symbols_db.js` - competitive symbol database for feed markers.
 - `tests/run-tests.mjs` - static tests for i18n, DOM IDs, assets, manifest, CSP, and helper contracts.
 - `instalar.bat` - visible template for the installer generated into exported ZIP files.
 - `docs/AI_CONTEXT.md` - compressed context for future AI sessions.
