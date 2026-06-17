@@ -773,6 +773,7 @@ function applyLanguage(lang) {
 
 // ─── STATE ───────────────────────────────────────────────────
 let selectedSlots     = [];
+let lastLibraryClickIndex = -1;
 let undoStack         = [];       // stack of previous slot arrays
 let currentFilter     = 'all';
 let currentPreviewIdx = -1;
@@ -1846,6 +1847,18 @@ function init() {
   // ── Save / Load roster ──
   btnSaveRoster.addEventListener('click', saveRoster);
   btnLoadRoster.addEventListener('change', loadRoster);
+  
+  // Drag and Drop files
+  window.addEventListener('dragover', e => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  });
+  window.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processRosterFile(e.dataTransfer.files[0]);
+    }
+  });
 
   // ── Modals ──
   modalClose.addEventListener('click', closeModal);
@@ -2146,6 +2159,11 @@ function saveRoster() {
 function loadRoster(e) {
   const file = e.target.files[0];
   if (!file) return;
+  processRosterFile(file);
+  e.target.value = '';
+}
+
+function processRosterFile(file) {
   const reader = new FileReader();
   reader.onload = ev => {
     try {
@@ -2176,7 +2194,6 @@ function loadRoster(e) {
     } catch(err) {
       showToast(t('toast_file_load_error'), 'error');
     }
-    e.target.value = '';
   };
   reader.readAsText(file);
 }
@@ -2287,6 +2304,7 @@ function getFiltered() { return processFilter(getSorted(currentDB)); }
 
 // ─── RENDER LIBRARY ──────────────────────────────────────────
 function renderLibrary() {
+  lastLibraryClickIndex = -1;
   availableList.innerHTML = '';
   const filtered = getFiltered();
   visibleCount.textContent = filtered.length;
@@ -2302,7 +2320,7 @@ function renderLibrary() {
   }
 
   const frag = document.createDocumentFragment();
-  filtered.forEach(c => {
+  filtered.forEach((c, i) => {
     const isSelected = selectedSlots.includes(c);
     const div = document.createElement('div');
     div.className = `item-card ${isSelected ? 'selected' : ''}`;
@@ -2351,18 +2369,39 @@ function renderLibrary() {
     div.setAttribute('aria-label', `${c.name} - ${isSelected ? t('aria_item_selected') : t('aria_item_add')}`);
     
     if (!isSelected) {
-      div.addEventListener('click', () => {
-        // Check for duplicates
-        if (selectedSlots.includes(c)) {
-          showToast(t('toast_already_selected', { name: c.name }), 'error');
-          return;
+      div.addEventListener('click', (e) => {
+        if (e.shiftKey && lastLibraryClickIndex !== -1) {
+          const start = Math.min(lastLibraryClickIndex, i);
+          const end = Math.max(lastLibraryClickIndex, i);
+          pushUndo();
+          let addedCount = 0;
+          for (let k = start; k <= end; k++) {
+            const item = filtered[k];
+            if (!selectedSlots.includes(item)) {
+              selectedSlots.push(item);
+              addedCount++;
+            }
+          }
+          if (addedCount > 0) {
+            currentPreviewIdx = selectedSlots.length - 1;
+            updateUI();
+            updatePreview(c, currentPreviewIdx + getStartNum());
+            showToast(t('toast_added_item', { name: `${addedCount} items` }), 'success');
+          }
+        } else {
+          // Check for duplicates
+          if (selectedSlots.includes(c)) {
+            showToast(t('toast_already_selected', { name: c.name }), 'error');
+            return;
+          }
+          pushUndo();
+          selectedSlots.push(c);
+          currentPreviewIdx = selectedSlots.length - 1;
+          updateUI();
+          updatePreview(c, currentPreviewIdx + getStartNum());
+          showToast(t('toast_added_item', { name: c.name }), 'success');
         }
-        pushUndo();
-        selectedSlots.push(c);
-        currentPreviewIdx = selectedSlots.length - 1;
-        updateUI();
-        updatePreview(c, currentPreviewIdx + getStartNum());
-        showToast(t('toast_added_item', { name: c.name }), 'success');
+        lastLibraryClickIndex = i;
         
         // Auto-close drawer on mobile when country is selected
         const device = detectDevice();

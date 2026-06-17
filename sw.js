@@ -23,19 +23,22 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
-    caches.match(event.request).then(response => {
-      if (response) {
-        return response;
-      }
-      return fetch(event.request).then(fetchRes => {
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
         return caches.open(CACHE_NAME).then(cache => {
-          if (event.request.url.startsWith('http') && event.request.method === 'GET') {
-            cache.put(event.request.url, fetchRes.clone());
+          if (event.request.url.startsWith('http')) {
+            cache.put(event.request.url, networkResponse.clone());
           }
-          return fetchRes;
+          return networkResponse;
         });
+      }).catch(() => {
+        // Optional: return a fallback page or offline indicator if both fail
       });
+
+      return cachedResponse || fetchPromise;
     })
   );
 });
