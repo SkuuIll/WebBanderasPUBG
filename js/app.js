@@ -1,4 +1,4 @@
-﻿// ─── DOM REFS ────────────────────────────────────────────────
+// ─── DOM REFS ────────────────────────────────────────────────
 const searchInput       = document.getElementById('searchInput');
 const btnClearSearch    = document.getElementById('btnClearSearch');
 const availableList     = document.getElementById('availableList');
@@ -3087,7 +3087,9 @@ async function generatePack() {
     progressContainer.setAttribute('aria-valuenow', '100');
 
     const content = await zip.generateAsync({ type: 'blob' });
-    downloadBlob(content, 'RosterBanderas_FlagForge.zip');
+    const modeName = currentMode.charAt(0).toUpperCase() + currentMode.slice(1);
+    const zipName = `FlagForge_${modeName}_${selectedSlots.length}items.zip`;
+    downloadBlob(content, zipName);
     showToast(t('toast_export_done', { count: selectedSlots.length, items: getItemLabelForCount(selectedSlots.length) }), 'success');
     
     setTimeout(() => {

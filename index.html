@@ -773,5 +773,16 @@
   <script src="js/platforms_db.js?v=20260617-competitive"></script>
   <script src="js/symbols_db.js?v=20260617-symbols"></script>
   <script src="js/app.js?v=20260617-symbols"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          console.log('ServiceWorker registered: ', reg.scope);
+        }).catch(err => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

@@ -1,4 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="FlagForge">
-  <rect width="512" height="512" rx="96" ry="96" fill="#2f81f7"/>
-  <text x="50%" y="56%" text-anchor="middle" font-family="Arial, sans-serif" font-size="220" font-weight="700" fill="#ffffff">FF</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#1a2332"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" ry="96" fill="url(#bg)"/>
+  <g transform="translate(256,240)" fill="none" stroke="#2f81f7" stroke-width="24" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Flag pole -->
+    <line x1="-60" y1="-120" x2="-60" y2="120"/>
+    <!-- Flag -->
+    <path d="M-60,-120 L80,-90 L-60,-40" fill="#2f81f7" fill-opacity="0.3" stroke="#2f81f7"/>
+    <!-- Anvil base -->
+    <path d="M-100,120 L100,120 L80,80 L-80,80 Z" fill="#2f81f7" fill-opacity="0.15" stroke="#2f81f7" stroke-width="18"/>
+  </g>
 </svg>
