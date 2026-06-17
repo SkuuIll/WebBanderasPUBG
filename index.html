@@ -259,6 +259,9 @@
               <button id="btnCopyCanvas" class="canvas-btn" title="Copiar imagen al portapapeles (Ctrl+C)" data-i18n-attr="title:canvas_copy">
                 <i data-lucide="clipboard"></i>
               </button>
+              <button id="btnDownloadCanvas" class="canvas-btn" title="Descargar imagen activa" data-i18n-attr="title:canvas_download">
+                <i data-lucide="download"></i>
+              </button>
               <button id="btnZoomIn" class="canvas-btn" title="Acercar vista previa" data-i18n-attr="title:canvas_zoom_in">
                 <i data-lucide="zoom-in"></i>
               </button>
@@ -371,6 +374,27 @@
                       <span class="toggle-slider"></span>
                     </label>
                     <span class="color-labels" data-i18n="label_color_transparent">Color · Transparente</span>
+                  </div>
+                </div>
+
+                <div class="control-row">
+                  <label for="bgTypeSelect" data-i18n="label_bg_type">Tipo de fondo</label>
+                  <select id="bgTypeSelect" class="bg-type-select">
+                    <option value="solid" data-i18n="bg_type_solid">Sólido</option>
+                    <option value="gradient" data-i18n="bg_type_gradient">Degradado</option>
+                  </select>
+                </div>
+
+                <div class="control-row" id="bgGradientOptions" hidden>
+                  <div class="color-row">
+                    <input type="color" id="bgColor2Input" value="#3b82f6">
+                    <span class="color-labels" data-i18n="label_color_2">Color secundario</span>
+                  </div>
+                  <div class="control-row">
+                    <label for="bgGradientAngle">
+                      <span data-i18n="label_gradient_angle">Ángulo</span> <span class="val-badge" id="bgGradientAngleValue">45°</span>
+                    </label>
+                    <input type="range" id="bgGradientAngle" min="0" max="360" value="45" class="slider">
                   </div>
                 </div>
               </div>

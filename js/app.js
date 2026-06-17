@@ -1,4 +1,4 @@
-// ─── DOM REFS ────────────────────────────────────────────────
+﻿// ─── DOM REFS ────────────────────────────────────────────────
 const searchInput       = document.getElementById('searchInput');
 const btnClearSearch    = document.getElementById('btnClearSearch');
 const availableList     = document.getElementById('availableList');
@@ -54,6 +54,12 @@ const shadowToggle      = document.getElementById('shadowToggle');
 const shadowColor       = document.getElementById('shadowColor');
 const shadowOptionsRow  = document.getElementById('shadowOptionsRow');
 const presetChips       = document.querySelectorAll('.preset-chip');
+const bgTypeSelect      = document.getElementById('bgTypeSelect');
+const bgGradientOptions = document.getElementById('bgGradientOptions');
+const bgColor2Input     = document.getElementById('bgColor2Input');
+const bgGradientAngle   = document.getElementById('bgGradientAngle');
+const bgGradientAngleValue = document.getElementById('bgGradientAngleValue');
+const btnDownloadCanvas = document.getElementById('btnDownloadCanvas');
 
 // Grid/List view
 const btnListView       = document.getElementById('btnListView');
@@ -190,6 +196,7 @@ const I18N = {
     canvas_zoom_in: 'Acercar vista previa',
     canvas_zoom_out: 'Alejar vista previa',
     canvas_zoom_reset: 'Restablecer zoom',
+    canvas_download: 'Descargar imagen activa',
     export_settings_title: 'Ajustes de Exportación',
     reset_settings_title: 'Restaurar valores por defecto',
     reset_label: 'Reset',
@@ -217,6 +224,11 @@ const I18N = {
     label_canvas_bg: 'Fondo del canvas',
     label_bg_transparent: 'Fondo transparente',
     label_color_transparent: 'Color · Transparente',
+    label_bg_type: 'Tipo de fondo',
+    bg_type_solid: 'Sólido',
+    bg_type_gradient: 'Degradado',
+    label_color_2: 'Color secundario',
+    label_gradient_angle: 'Ángulo',
     accordion_number: 'Número',
     label_number_size: 'Tamaño Número',
     label_stroke_size: 'Grosor Contorno',
@@ -389,7 +401,9 @@ const I18N = {
     toast_preset_applied: 'Preset "{{name}}" aplicado',
     toast_settings_reset: 'Configuración restaurada',
     toast_checking_platforms: 'Verificando logos de plataformas...',
-    toast_mode_activated: 'Modo {{mode}} activado'
+    toast_mode_activated: 'Modo {{mode}} activado',
+    toast_single_downloaded: 'Imagen descargada exitosamente',
+    toast_single_download_error: 'Error al descargar la imagen'
   },
   en: {
     skip_to_content: 'Skip to content',
@@ -440,6 +454,7 @@ const I18N = {
     canvas_zoom_in: 'Zoom in preview',
     canvas_zoom_out: 'Zoom out preview',
     canvas_zoom_reset: 'Reset zoom',
+    canvas_download: 'Download active image',
     export_settings_title: 'Export Settings',
     reset_settings_title: 'Restore default values',
     reset_label: 'Reset',
@@ -467,6 +482,11 @@ const I18N = {
     label_canvas_bg: 'Canvas background',
     label_bg_transparent: 'Transparent background',
     label_color_transparent: 'Color · Transparent',
+    label_bg_type: 'Background type',
+    bg_type_solid: 'Solid',
+    bg_type_gradient: 'Gradient',
+    label_color_2: 'Secondary color',
+    label_gradient_angle: 'Angle',
     accordion_number: 'Number',
     label_number_size: 'Number size',
     label_stroke_size: 'Stroke width',
@@ -639,7 +659,9 @@ const I18N = {
     toast_preset_applied: 'Preset "{{name}}" applied',
     toast_settings_reset: 'Settings restored',
     toast_checking_platforms: 'Checking platform logos...',
-    toast_mode_activated: '{{mode}} mode activated'
+    toast_mode_activated: '{{mode}} mode activated',
+    toast_single_downloaded: 'Image downloaded successfully',
+    toast_single_download_error: 'Error downloading image'
   }
 };
 
@@ -958,16 +980,35 @@ async function ensurePlatformSupport() {
   return platformSupportPromise;
 }
 
+function drawCanvasBackground(context, S, item) {
+  if (bgTransparent.checked) {
+    context.clearRect(0, 0, S, S);
+    return;
+  }
+  if (bgTypeSelect && bgTypeSelect.value === 'gradient') {
+    const angle = parseInt(bgGradientAngle.value, 10) || 0;
+    const rad = (angle - 90) * Math.PI / 180;
+    const halfS = S / 2;
+    const dx = Math.cos(rad) * halfS;
+    const dy = Math.sin(rad) * halfS;
+    const grad = context.createLinearGradient(halfS - dx, halfS - dy, halfS + dx, halfS + dy);
+    grad.addColorStop(0, bgColorInput.value || '#000000');
+    grad.addColorStop(1, bgColor2Input.value || '#3b82f6');
+    context.fillStyle = grad;
+  } else {
+    const usePlatformColor = currentMode === 'platforms' && item && item.color;
+    context.fillStyle = usePlatformColor ? item.color : (bgColorInput.value || '#000000');
+  }
+  context.fillRect(0, 0, S, S);
+}
+
 // Apply flag style effects to canvas
 function applyFlagStyleToCanvas(context, img, S, item) {
   const config = getFlagStyleConfig();
   context.clearRect(0, 0, S, S);
 
-  if (config.padding > 0 && !bgTransparent.checked) {
-    context.fillStyle = currentMode === 'platforms' && item && item.color
-      ? item.color
-      : (bgColorInput.value || '#000000');
-    context.fillRect(0, 0, S, S);
+  if (config.padding > 0) {
+    drawCanvasBackground(context, S, item);
   }
 
   drawFlagContain(context, img, S, item, {
@@ -1167,7 +1208,10 @@ function getCurrentSettings() {
     opacity: opacityInput.value,
     shadow: shadowToggle.checked,
     shadowColor: shadowColor.value,
-    flagStyle: currentFlagStyle
+    flagStyle: currentFlagStyle,
+    bgType: bgTypeSelect.value,
+    bgColor2: bgColor2Input.value,
+    bgGradientAngle: bgGradientAngle.value
   };
 }
 
@@ -1584,6 +1628,24 @@ function init() {
   shadowColor.addEventListener('input', refreshPreview);
   btnResetSettings.addEventListener('click', resetSettings);
 
+  // ── Gradient background controls ──
+  if (bgTypeSelect) {
+    bgTypeSelect.addEventListener('change', () => {
+      if (bgGradientOptions) bgGradientOptions.hidden = bgTypeSelect.value !== 'gradient';
+      refreshPreview();
+    });
+  }
+  if (bgColor2Input) bgColor2Input.addEventListener('input', refreshPreview);
+  if (bgGradientAngle) {
+    bgGradientAngle.addEventListener('input', e => {
+      if (bgGradientAngleValue) bgGradientAngleValue.textContent = e.target.value + '°';
+      refreshPreview();
+    });
+  }
+
+  // ── Single canvas download ──
+  if (btnDownloadCanvas) btnDownloadCanvas.addEventListener('click', downloadSingleCanvas);
+
   // ── Presets ──
   presetChips.forEach(chip => chip.addEventListener('click', () => applyPreset(chip.dataset.preset)));
 
@@ -1999,6 +2061,33 @@ async function copyCanvasToClipboard() {
   }
 }
 
+async function downloadSingleCanvas() {
+  if (currentPreviewIdx < 0 || currentPreviewIdx >= selectedSlots.length) {
+    showToast(t('toast_select_item_first', { item: getItemLabels().singular }), 'error');
+    return;
+  }
+  if (!canvas || typeof canvas.toBlob !== 'function') {
+    showToast(t('toast_single_download_error'), 'error');
+    return;
+  }
+  try {
+    const item = selectedSlots[currentPreviewIdx];
+    const num = currentPreviewIdx + getStartNum();
+    const cleanName = sanitizeFilename(item.name);
+    const fileName = `${num}-${cleanName}.png`;
+    canvas.toBlob(blob => {
+      if (blob) {
+        downloadBlob(blob, fileName);
+        showToast(t('toast_single_downloaded'), 'success');
+      } else {
+        showToast(t('toast_single_download_error'), 'error');
+      }
+    }, 'image/png');
+  } catch (err) {
+    showToast(t('toast_single_download_error'), 'error');
+  }
+}
+
 // ─── SAVE / LOAD ROSTER ──────────────────────────────────────
 function applySettings(s) {
   if (!s) return;
@@ -2023,6 +2112,21 @@ function applySettings(s) {
   if (s.flagStyle)     applyFlagStyleSetting(s.flagStyle);
   if (s.shape)         setShape(s.shape);
   if (s.position)      setPosition(s.position);
+  if (s.bgType) {
+    bgTypeSelect.value = s.bgType;
+    bgGradientOptions.hidden = s.bgType !== 'gradient';
+  } else {
+    bgTypeSelect.value = 'solid';
+    bgGradientOptions.hidden = true;
+  }
+  if (s.bgColor2) bgColor2Input.value = s.bgColor2;
+  if (s.bgGradientAngle) {
+    bgGradientAngle.value = s.bgGradientAngle;
+    bgGradientAngleValue.textContent = s.bgGradientAngle + '°';
+  } else {
+    bgGradientAngle.value = 45;
+    bgGradientAngleValue.textContent = '45°';
+  }
 }
 
 function saveRoster() {
@@ -2495,12 +2599,8 @@ function drawFlagContain(context, img, S, item, options = {}) {
   const box = S - inset * 2;
 
   // Fill background first
-  if (!bgTransparent.checked && !padding) {
-    const usePlatformColor = currentMode === 'platforms' && item && item.color;
-    context.fillStyle = usePlatformColor ? item.color : (bgColorInput.value || '#000000');
-    context.fillRect(0, 0, S, S);
-  } else if (bgTransparent.checked && !padding) {
-    context.clearRect(0, 0, S, S);
+  if (!padding) {
+    drawCanvasBackground(context, S, item);
   }
 
   const iw = img.naturalWidth  || img.width;
@@ -2758,10 +2858,13 @@ function drawSymbolGlyph(context, icon, cx, cy, size, color) {
 function drawSymbolToCanvas(context, item, number, S) {
   context.clearRect(0, 0, S, S);
   const baseColor = item.color || '#334155';
-  const bg = bgTransparent.checked ? baseColor : (bgColorInput.value || '#000000');
   context.save();
-  context.fillStyle = bgTransparent.checked ? baseColor : bg;
-  context.fillRect(0, 0, S, S);
+  if (bgTransparent.checked) {
+    context.fillStyle = baseColor;
+    context.fillRect(0, 0, S, S);
+  } else {
+    drawCanvasBackground(context, S, item);
+  }
 
   const pad = S * 0.12;
   context.beginPath();
@@ -3003,6 +3106,8 @@ async function generatePack() {
 }
 
 function generateBat() {
+  const CRLF = '\r\n';
+  const hasCsv = includeCSV && includeCSV.checked;
   return [
     '@echo off',
     'setlocal EnableExtensions',
@@ -3011,6 +3116,8 @@ function generateBat() {
     'echo =======================================',
     'echo  FlagForge Studio - Instalando Banderas',
     'echo =======================================',
+    'echo.',
+    'echo No se requieren librerias ni paquetes adicionales para este pack.',
     'echo.',
     'set "SCRIPT_DIR=%~dp0"',
     'set "SRC=%SCRIPT_DIR%Observer"',
@@ -3022,37 +3129,39 @@ function generateBat() {
     'echo [1/5] Verificando estructura del paquete...',
     'if not exist "%SRC%\\" call :fail "No se encontro la carpeta Observer junto a instalar.bat."',
     'if not exist "%SRC_ICON%\\" call :fail "No se encontro Observer\\TeamIcon en el paquete."',
-    'if not exist "%SRC%\\TeamInfo.csv" call :fail "No se encontro Observer\\TeamInfo.csv en el paquete."',
+    hasCsv ? 'if not exist "%SRC%\\TeamInfo.csv" call :fail "No se encontro TeamInfo.csv en el paquete."' : 'rem (TeamInfo.csv no incluido en este pack)',
     'if "%ERR%"=="1" goto :end',
     'echo [2/5] Preparando carpetas de destino...',
     'if not exist "%LOCALAPPDATA%\\TslGame" mkdir "%LOCALAPPDATA%\\TslGame" 2>nul',
     'if not exist "%SAVED%" mkdir "%SAVED%" 2>nul',
     'if not exist "%DST%" mkdir "%DST%" 2>nul',
     'if not exist "%DST_ICON%" mkdir "%DST_ICON%" 2>nul',
-    'if not exist "%DST_ICON%\\" call :fail "No se pudo crear la carpeta destino. Ejecuta como administrador solo si Windows bloquea permisos."',
+    'if not exist "%DST_ICON%\\" call :fail "No se pudo crear la carpeta destino. Ejecuta como administrador si Windows bloquea permisos."',
     'if "%ERR%"=="1" goto :end',
     'echo [3/5] Copiando archivos...',
     'where robocopy >nul 2>nul',
-    'if "%ERRORLEVEL%"=="0" (',
-    '  robocopy "%SRC%" "%DST%" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul',
-    '  if errorlevel 8 call :fail "Robocopy informo un error al copiar los archivos."',
-    ') else (',
-    '  xcopy /E /I /Y "%SRC%" "%DST%\\" >nul',
-    '  if errorlevel 1 call :fail "Xcopy informo un error al copiar los archivos."',
-    ')',
+    'if errorlevel 1 goto :use_xcopy',
+    'robocopy "%SRC%" "%DST%" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul',
+    'if errorlevel 8 goto :copy_error',
+    'goto :copy_done',
+    ':use_xcopy',
+    'xcopy /E /I /Y "%SRC%" "%DST%\\" >nul',
+    'if errorlevel 1 goto :copy_error',
+    'goto :copy_done',
+    ':copy_error',
+    'call :fail "Error al copiar los archivos. Intentalo ejecutando como administrador."',
+    ':copy_done',
     'if "%ERR%"=="1" goto :end',
     'echo [4/5] Verificando instalacion...',
-    'if not exist "%DST%\\TeamInfo.csv" call :fail "No se copio TeamInfo.csv al destino."',
     'if not exist "%DST_ICON%\\" call :fail "No se creo TeamIcon en el destino."',
     'dir /b "%DST_ICON%\\*.png" >nul 2>nul',
-    'if errorlevel 1 call :fail "No se encontraron PNG en TeamIcon."',
+    'if errorlevel 1 call :fail "No se encontraron archivos PNG en TeamIcon."',
+    hasCsv ? 'if not exist "%DST%\\TeamInfo.csv" call :fail "No se copio TeamInfo.csv al destino."' : 'rem (verificacion de TeamInfo.csv omitida)',
     'if "%ERR%"=="1" goto :end',
     'echo [5/5] Instalacion completada correctamente.',
     'echo.',
-    'echo Destino:',
-    'echo %DST%',
+    'echo Destino: %DST%',
     'echo.',
-    'echo No se requieren librerias ni paquetes adicionales para este pack.',
     'goto :end',
     '',
     ':fail',
@@ -3064,16 +3173,15 @@ function generateBat() {
     ':end',
     'echo.',
     'if "%ERR%"=="1" (',
-    '  echo La instalacion no se completo. Revisa los mensajes anteriores.',
+    '  echo La instalacion no se completo. Revisa los mensajes de error.',
     ') else (',
-    '  echo Ya podes abrir PUBG en modo Observer.',
+    '  echo Instalacion exitosa. Ya podes abrir PUBG en modo Observer.',
     ')',
     'pause',
     'exit /b %ERR%',
     ''
-  ].join('\\r\\n');
+  ].join(CRLF);
 }
-
 function generatePreviewHtml() {
   const startNum = getStartNum();
   const items = selectedSlots.map((c,i) => {
@@ -3644,6 +3752,11 @@ function applyPreset(name) {
   shadowOptionsRow.hidden = true;
   customText.value = '';
 
+  if (bgTypeSelect) {
+    bgTypeSelect.value = 'solid';
+    bgGradientOptions.hidden = true;
+  }
+
   presetChips.forEach(c => c.classList.remove('active'));
   const active = document.querySelector(`.preset-chip[data-preset="${name}"]`);
   if (active) active.classList.add('active');
@@ -3672,6 +3785,17 @@ function resetSettings() {
   shadowColor.value = '#000000';
   setShape('square');
   setPosition('bottom-right');
+
+  if (bgTypeSelect) {
+    bgTypeSelect.value = 'solid';
+    bgGradientOptions.hidden = true;
+  }
+  if (bgColor2Input) bgColor2Input.value = '#3b82f6';
+  if (bgGradientAngle) {
+    bgGradientAngle.value = 45;
+    bgGradientAngleValue.textContent = '45°';
+  }
+
   presetChips.forEach(c => c.classList.remove('active'));
   presetBtns.forEach(b => b.classList.remove('active'));
 
