@@ -2449,6 +2449,8 @@ kbd {
 /* ─── VIEW TOGGLE ───────────────────────────────────────────── */
 .mode-toggle {
   display: flex;
+  flex: 1;
+  min-width: 0;
   background: var(--bg-accent);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -2456,8 +2458,9 @@ kbd {
 }
 .mode-btn {
   height: 30px;
-  min-width: 92px;
-  padding: 0 10px;
+  flex: 1;
+  min-width: 0;
+  padding: 0 6px;
   background: none;
   border: none;
   color: var(--text-muted);
@@ -2466,10 +2469,11 @@ kbd {
   align-items: center;
   justify-content: center;
   transition: var(--transition);
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.2px;
   text-transform: none;
+  white-space: nowrap;
 }
 .mode-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
 .mode-btn.active { color: var(--primary); background: var(--primary-dim); }

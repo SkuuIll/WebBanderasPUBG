@@ -2982,35 +2982,11 @@ function drawNumberToCanvas(context, item, number, S) {
     drawCanvasBackground(context, S, item);
   }
 
-  const pad = S * 0.05;
-  const boxW = S - pad * 2;
-  const boxH = S - pad * 2;
   const cx = S / 2;
   const cy = S / 2;
 
-  // Radial gradient originating from number center outwards to fill the full square box
-  const radGrad = context.createRadialGradient(cx, cy, S * 0.02, cx, cy, S * 0.65);
-  radGrad.addColorStop(0, baseColor);
-  radGrad.addColorStop(0.35, hexToRgba(baseColor, 0.85));
-  radGrad.addColorStop(0.75, hexToRgba(baseColor, 0.30));
-  radGrad.addColorStop(1, '#090d16');
-
-  context.beginPath();
-  roundedRectPath(context, pad, pad, boxW, boxH, S * 0.14);
-  context.fillStyle = radGrad;
-  context.fill();
-
-  // Vibrant neon border matching radial gradient glow
-  context.shadowColor = baseColor;
-  context.shadowBlur = S * 0.06;
-  context.strokeStyle = baseColor;
-  context.lineWidth = Math.max(2, S * 0.022);
-  context.stroke();
-
-  context.shadowColor = 'transparent';
-
-  // Extra Large High-Vis Number
-  const fontHeight = Math.floor(S * 0.60);
+  // GIANT NUMBER filling the entire box (~88% font height)
+  const fontHeight = Math.floor(S * 0.88);
   const font = fontSelect.value || 'Impact';
   const textVal = customText.value.trim() || String(item.num || number);
 
@@ -3020,13 +2996,23 @@ function drawNumberToCanvas(context, item, number, S) {
   context.lineJoin = 'round';
   context.miterLimit = 2;
 
-  // Deep black double-stroke outline around text
-  context.lineWidth = Math.max(6, fontHeight * 0.20);
+  // Create smooth vibrant color gradient directly inside the GIANT NUMBER digits!
+  const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
+  textGrad.addColorStop(0, '#FFFFFF');
+  textGrad.addColorStop(0.45, baseColor);
+  textGrad.addColorStop(1, hexToRgba(baseColor, 0.75));
+
+  // Outer neon glow surrounding the number
+  context.shadowColor = baseColor;
+  context.shadowBlur = S * 0.12;
+
+  // Deep dark double-stroke outline around text for maximum contrast
+  context.lineWidth = Math.max(6, fontHeight * 0.16);
   context.strokeStyle = strokeColor.value || '#000000';
   context.strokeText(textVal, cx, cy + fontHeight * 0.04);
 
-  // High contrast white or selected color fill
-  context.fillStyle = numberColor.value || '#FFFFFF';
+  // Gradient fill directly inside the number
+  context.fillStyle = textGrad;
   context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
   context.restore();
