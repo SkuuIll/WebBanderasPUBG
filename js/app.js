@@ -1613,11 +1613,11 @@ function init() {
   if (sortSelect) sortSelect.addEventListener('change', renderLibrary);
 
   // ── Preview controls ──
-  sizeInput.addEventListener('input',   e => { sizeValue.textContent   = e.target.value + '%'; refreshPreview(); });
-  strokeInput.addEventListener('input', e => { strokeValue.textContent = e.target.value + '%'; refreshPreview(); });
-  numberColor.addEventListener('input',  refreshPreview);
-  strokeColor.addEventListener('input',  refreshPreview);
-  bgColorInput.addEventListener('input', refreshPreview);
+  sizeInput.addEventListener('input',   e => { sizeValue.textContent   = e.target.value + '%'; schedulePreviewUpdate(); });
+  strokeInput.addEventListener('input', e => { strokeValue.textContent = e.target.value + '%'; schedulePreviewUpdate(); });
+  numberColor.addEventListener('input',  schedulePreviewUpdate);
+  strokeColor.addEventListener('input',  schedulePreviewUpdate);
+  bgColorInput.addEventListener('input', schedulePreviewUpdate);
   bgTransparent.addEventListener('change', refreshPreview);
   fontSelect.addEventListener('change',  refreshPreview);
   showNumber.addEventListener('change',  refreshPreview);
@@ -2657,6 +2657,15 @@ function refreshPreview() {
     previewCountryName.textContent = '—';
     previewIndex.textContent = '–';
   }
+}
+
+let previewRafId = null;
+function schedulePreviewUpdate() {
+  if (previewRafId) return;
+  previewRafId = requestAnimationFrame(() => {
+    previewRafId = null;
+    refreshPreview();
+  });
 }
 
 // ── Draw flag using CONTAIN (letterbox) – no cropping ────────
