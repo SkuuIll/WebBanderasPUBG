@@ -88,6 +88,7 @@ const bgColorInput      = document.getElementById('bgColorInput');
 const bgTransparent     = document.getElementById('bgTransparent');
 const fontSelect        = document.getElementById('fontSelect');
 const showNumber        = document.getElementById('showNumber');
+const rgbToggle         = document.getElementById('rgbToggle');
 const squareFlag        = document.getElementById('squareFlag');
 const posBtns           = document.querySelectorAll('.pos-btn');
 const shapeBtns         = document.querySelectorAll('.shape-btn');
@@ -217,6 +218,9 @@ const I18N = {
     preset_retro: 'Retro',
     preset_highvis: '# Números High-Vis',
     preset_highvis_title: 'Números High-Vis: Marcadores de números gigantes con degradado radial neón.',
+    preset_rgb: 'RGB Neón',
+    preset_rgb_title: 'RGB Neón: Efecto arcoíris brillante con colores llamativos.',
+    label_rgb_effect: 'Efecto Arcoíris RGB',
     accordion_base: 'Base',
     label_resolution: 'Resolución (px)',
     label_number_start: 'Número inicial',
@@ -478,6 +482,9 @@ const I18N = {
     preset_retro: 'Retro',
     preset_highvis: '# High-Vis Numbers',
     preset_highvis_title: 'High-Vis Numbers: Extra-large number markers with radial neon gradient glow.',
+    preset_rgb: 'RGB Neon',
+    preset_rgb_title: 'RGB Neon: Bright rainbow effect with striking colors.',
+    label_rgb_effect: 'RGB Rainbow Effect',
     accordion_base: 'Base',
     label_resolution: 'Resolution (px)',
     label_number_start: 'Starting number',
@@ -1638,6 +1645,7 @@ function init() {
   bgTransparent.addEventListener('change', refreshPreview);
   fontSelect.addEventListener('change',  refreshPreview);
   showNumber.addEventListener('change',  refreshPreview);
+  if (rgbToggle) rgbToggle.addEventListener('change', refreshPreview);
   squareFlag.addEventListener('change',  refreshPreview);
   numberStart.addEventListener('change', refreshPreview);
   exportSizeInput.addEventListener('change', refreshPreview);
@@ -3013,13 +3021,30 @@ function drawNumberToCanvas(context, item, number, S) {
   const useColor = (customColor && customColor.toLowerCase() !== '#ffffff') ? customColor : baseColor;
 
   const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
-  textGrad.addColorStop(0, '#FFFFFF');
-  textGrad.addColorStop(0.45, useColor);
-  textGrad.addColorStop(1, hexToRgba(useColor, 0.75));
+  
+  if (rgbToggle && rgbToggle.checked) {
+    // Rainbow / RGB Effect
+    textGrad.addColorStop(0, '#FF0000');
+    textGrad.addColorStop(0.15, '#FF7F00');
+    textGrad.addColorStop(0.3, '#FFFF00');
+    textGrad.addColorStop(0.5, '#00FF00');
+    textGrad.addColorStop(0.65, '#00FFFF');
+    textGrad.addColorStop(0.8, '#0000FF');
+    textGrad.addColorStop(1, '#FF00FF');
+  } else {
+    textGrad.addColorStop(0, '#FFFFFF');
+    textGrad.addColorStop(0.45, useColor);
+    textGrad.addColorStop(1, hexToRgba(useColor, 0.75));
+  }
 
-  // Outer neon glow surrounding the number
+  // Outer neon glow surrounding the number (or custom drop shadow if toggle is on)
   if (shadowToggle.checked) {
-    context.shadowColor = shadowColor.value && shadowColor.value !== '#000000' && shadowColor.value !== '#000' ? shadowColor.value : useColor;
+    context.shadowColor = shadowColor.value || '#000000';
+    context.shadowBlur = Math.max(4, fontHeight * 0.12);
+    context.shadowOffsetX = Math.max(2, fontHeight * 0.04);
+    context.shadowOffsetY = Math.max(2, fontHeight * 0.04);
+  } else {
+    context.shadowColor = useColor;
     context.shadowBlur = S * 0.12;
     context.shadowOffsetX = 0;
     context.shadowOffsetY = 0;
@@ -3032,8 +3057,7 @@ function drawNumberToCanvas(context, item, number, S) {
   context.strokeText(textVal, cx, cy + fontHeight * 0.04);
 
   // Gradient fill directly inside the number
-  // Turn off shadow before fill so it doesn't double-glow heavily on the fill itself
-  context.shadowColor = 'transparent';
+  // (Keep the shadow active so the fill ALSO casts the intense neon glow, like the original design)
   context.fillStyle = textGrad;
   context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
@@ -3947,11 +3971,16 @@ const PRESETS = {
     size: 80, stroke: 16, numberColor: '#FFFFFF', strokeColor: '#000000',
     bgColor: '#090d16', bgTransparent: false, shape: 'square', position: 'center',
     font: 'Impact', showNumber: true, squareFlag: true
+  },
+  rgb_neon: {
+    size: 90, stroke: 14, numberColor: '#FFFFFF', strokeColor: '#000000',
+    bgColor: '#000000', bgTransparent: true, shape: 'square', position: 'center',
+    font: 'Impact', showNumber: true, squareFlag: true, rgbEffect: true
   }
 };
 
 function applyPreset(name) {
-  if (name === 'highvis' && currentMode !== 'numbers') {
+  if ((name === 'highvis' || name === 'rgb_neon') && currentMode !== 'numbers') {
     setMode('numbers', { skipConfirm: true });
   }
   const p = PRESETS[name];
@@ -3972,6 +4001,7 @@ function applyPreset(name) {
   shadowToggle.checked = false;
   shadowOptionsRow.hidden = true;
   customText.value = '';
+  if (rgbToggle) rgbToggle.checked = !!p.rgbEffect;
 
   if (bgTypeSelect) {
     bgTypeSelect.value = 'solid';
@@ -4002,6 +4032,7 @@ function resetSettings() {
   customText.value = '';
   opacityInput.value = 100; opacityValue.textContent = '100%';
   shadowToggle.checked = false;
+  if (rgbToggle) rgbToggle.checked = false;
   shadowOptionsRow.hidden = true;
   shadowColor.value = '#000000';
   setShape('square');
