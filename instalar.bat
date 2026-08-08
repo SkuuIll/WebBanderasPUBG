@@ -16,13 +16,19 @@ set "DST=%SAVED%\Observer"
 set "DST_ICON=%DST%\TeamIcon"
 set "ERR=0"
 echo [1/5] Verificando estructura del paquete...
-if not exist "%SRC%\" call :fail "No se encontro la carpeta Observer junto a instalar.bat."
-if not exist "%SRC_ICON%\" call :fail "No se encontro Observer\TeamIcon en el paquete."
+if not exist "%SRC%\" call :fail "No se encontro la carpeta Observer junto a instalar.bat. Si abriste el archivo ZIP sin extraerlo, hace clic derecho en el .zip y selecciona 'Extraer todo' antes de instalar."
+if not exist "%SRC_ICON%\" call :fail "No se encontro Observer\TeamIcon en el paquete. Extrae completamente el archivo ZIP."
 if "%ERR%"=="1" goto :end
 echo [2/5] Preparando carpetas de destino...
 if not exist "%LOCALAPPDATA%\TslGame" mkdir "%LOCALAPPDATA%\TslGame" 2>nul
 if not exist "%SAVED%" mkdir "%SAVED%" 2>nul
 if not exist "%DST%" mkdir "%DST%" 2>nul
+if exist "%DST_ICON%\" (
+  echo Limpiando banderas y logos anteriores...
+  del /f /q "%DST_ICON%\*" >nul 2>nul
+) else (
+  mkdir "%DST_ICON%" 2>nul
+)
 if not exist "%DST_ICON%" mkdir "%DST_ICON%" 2>nul
 if not exist "%DST_ICON%\" call :fail "No se pudo crear la carpeta destino. Ejecuta como administrador si Windows bloquea permisos."
 if "%ERR%"=="1" goto :end
@@ -30,7 +36,7 @@ echo [3/5] Copiando archivos...
 where robocopy >nul 2>nul
 if errorlevel 1 goto :use_xcopy
 robocopy "%SRC%" "%DST%" /E /R:2 /W:1 /NFL /NDL /NJH /NJS /NP >nul
-if errorlevel 8 goto :copy_error
+if errorlevel 8 goto :use_xcopy
 goto :copy_done
 :use_xcopy
 xcopy /E /I /Y "%SRC%" "%DST%\" >nul
