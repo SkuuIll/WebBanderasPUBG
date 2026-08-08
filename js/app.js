@@ -215,6 +215,8 @@ const I18N = {
     preset_clean: 'Clean',
     preset_retro_title: 'Retro: Estilo vintage con colores dorados. Perfecto para eventos temáticos.',
     preset_retro: 'Retro',
+    preset_highvis: '# Números High-Vis',
+    preset_highvis_title: 'Números High-Vis: Marcadores de números gigantes con degradado radial neón.',
     accordion_base: 'Base',
     label_resolution: 'Resolución (px)',
     label_number_start: 'Número inicial',
@@ -474,6 +476,8 @@ const I18N = {
     preset_clean: 'Clean',
     preset_retro_title: 'Retro: Vintage style with golden colors. Perfect for themed events.',
     preset_retro: 'Retro',
+    preset_highvis: '# High-Vis Numbers',
+    preset_highvis_title: 'High-Vis Numbers: Extra-large number markers with radial neon gradient glow.',
     accordion_base: 'Base',
     label_resolution: 'Resolution (px)',
     label_number_start: 'Starting number',
@@ -3930,10 +3934,18 @@ const PRESETS = {
     size: 60, stroke: 16, numberColor: '#FFD700', strokeColor: '#B22222',
     bgColor: '#1a0a2e', bgTransparent: false, shape: 'square', position: 'center',
     font: 'Bungee', showNumber: true, squareFlag: false
+  },
+  highvis: {
+    size: 80, stroke: 16, numberColor: '#FFFFFF', strokeColor: '#000000',
+    bgColor: '#090d16', bgTransparent: false, shape: 'square', position: 'center',
+    font: 'Impact', showNumber: true, squareFlag: true
   }
 };
 
 function applyPreset(name) {
+  if (name === 'highvis' && currentMode !== 'numbers') {
+    setMode('numbers', { skipConfirm: true });
+  }
   const p = PRESETS[name];
   if (!p) return;
 
