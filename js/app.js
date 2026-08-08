@@ -2306,7 +2306,7 @@ function processFilter(countries) {
         case 'education': matchTag = c.category === 'Educación'; break;
         case 'communication': matchTag = c.category === 'Comunicación'; break;
       }
-    } else {
+    } else if (isSymbolsMode()) {
       switch (currentFilter) {
         case 'top':      matchTag = c.filters.includes('top'); break;
         case 'combat':   matchTag = c.filters.includes('combat'); break;
