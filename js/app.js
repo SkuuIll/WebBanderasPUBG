@@ -2982,14 +2982,22 @@ function drawNumberToCanvas(context, item, number, S) {
   const baseColor = item.color || '#FACC15';
   context.save();
 
-  // GIANT NUMBER filling the entire box without background
+  // Read inputs from UI
+  const sizePct    = parseInt(sizeInput.value, 10) / 100;
+  const strokePct  = parseInt(strokeInput.value, 10) / 100;
+  const opacityPct = parseInt(opacityInput.value, 10) / 100;
+  const font       = fontSelect.value || 'Impact';
+  const textVal    = customText.value.trim() || String(item.num || number);
+
+  // Apply opacity
+  context.globalAlpha = opacityPct;
+
+  // GIANT NUMBER sizing based on slider (scale 1.6x so 55% looks big, up to ~1.6x at 100%)
+  // Original fontHeight was Math.floor(S * 0.88). If sizePct is 0.55, 0.55 * 1.6 = 0.88.
+  const fontHeight = Math.floor(S * (sizePct * 1.6)); 
+
   const cx = S / 2;
   const cy = S / 2;
-
-  // GIANT NUMBER filling the entire box (~88% font height)
-  const fontHeight = Math.floor(S * 0.88);
-  const font = fontSelect.value || 'Impact';
-  const textVal = customText.value.trim() || String(item.num || number);
 
   context.font = `900 ${fontHeight}px "${font}", sans-serif`;
   context.textAlign = 'center';
@@ -2997,22 +3005,35 @@ function drawNumberToCanvas(context, item, number, S) {
   context.lineJoin = 'round';
   context.miterLimit = 2;
 
-  // Create smooth vibrant color gradient directly inside the GIANT NUMBER digits!
+  // Create smooth vibrant color gradient directly inside the digits
+  // If user explicitly chose a numberColor (other than white), maybe blend it, 
+  // but to keep the neon style vibrant, we'll stick to baseColor as the primary theme
+  // or override with numberColor if they changed it.
+  const customColor = numberColor.value;
+  const useColor = (customColor && customColor.toLowerCase() !== '#ffffff') ? customColor : baseColor;
+
   const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
   textGrad.addColorStop(0, '#FFFFFF');
-  textGrad.addColorStop(0.45, baseColor);
-  textGrad.addColorStop(1, hexToRgba(baseColor, 0.75));
+  textGrad.addColorStop(0.45, useColor);
+  textGrad.addColorStop(1, hexToRgba(useColor, 0.75));
 
   // Outer neon glow surrounding the number
-  context.shadowColor = baseColor;
-  context.shadowBlur = S * 0.12;
+  if (shadowToggle.checked) {
+    context.shadowColor = shadowColor.value && shadowColor.value !== '#000000' && shadowColor.value !== '#000' ? shadowColor.value : useColor;
+    context.shadowBlur = S * 0.12;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
+  }
 
   // Deep dark double-stroke outline around text for maximum contrast
-  context.lineWidth = Math.max(6, fontHeight * 0.16);
+  const strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
+  context.lineWidth = strokeWidth * 2;
   context.strokeStyle = strokeColor.value || '#000000';
   context.strokeText(textVal, cx, cy + fontHeight * 0.04);
 
   // Gradient fill directly inside the number
+  // Turn off shadow before fill so it doesn't double-glow heavily on the fill itself
+  context.shadowColor = 'transparent';
   context.fillStyle = textGrad;
   context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
