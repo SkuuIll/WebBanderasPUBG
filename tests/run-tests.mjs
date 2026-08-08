@@ -490,6 +490,28 @@ function testSymbolsMode() {
   check(invalidColors.length === 0, `symbolsDB colors must be hex colors: ${invalidColors.join(', ')}`);
 }
 
+function testNumbersMode() {
+  const html = read('index.html');
+  const js = read(path.join('js', 'app.js'));
+  const numbersSrc = read(path.join('js', 'numbers_db.js'));
+
+  check(html.includes('id="btnNumbersMode"'), 'Missing numbers mode button');
+  check(html.includes('js/numbers_db.js'), 'Missing numbers database script');
+  check(js.includes('function drawNumberToCanvas'), 'Missing number canvas renderer');
+  check(js.includes("requestModeChange('numbers')"), 'Missing numbers mode listener');
+
+  let numbers = [];
+  try {
+    numbers = Function(`${numbersSrc}\nreturn numbersDB;`)();
+  } catch (error) {
+    check(false, `numbersDB should be parseable: ${error.message}`);
+    return;
+  }
+
+  check(Array.isArray(numbers), 'numbersDB should be an array');
+  check(numbers.length === 105, `numbersDB should include 105 team numbers, found ${numbers.length}`);
+}
+
 function run() {
   testI18nKeys();
   testRequiredIds();
@@ -511,6 +533,7 @@ function run() {
   testInstallerBat();
   testGitHubPagesFiles();
   testSymbolsMode();
+  testNumbersMode();
 
   if (failures.length) {
     console.error('Tests failed:');

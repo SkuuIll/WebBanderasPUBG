@@ -69,6 +69,7 @@ const btnGridView       = document.getElementById('btnGridView');
 const btnFlagsMode      = document.getElementById('btnFlagsMode');
 const btnPlatformsMode  = document.getElementById('btnPlatformsMode');
 const btnSymbolsMode    = document.getElementById('btnSymbolsMode');
+const btnNumbersMode    = document.getElementById('btnNumbersMode');
 const libraryTitle      = document.getElementById('libraryTitle');
 const countLabel        = document.getElementById('countLabel');
 
@@ -167,6 +168,7 @@ const I18N = {
     mode_flags: 'Banderas',
     mode_platforms: 'Plataformas',
     mode_symbols: 'Símbolos',
+    mode_numbers: '# Números',
     view_list: 'Vista lista',
     view_grid: 'Vista grilla',
     flag_style_label: 'Estilo de Banderas',
@@ -425,6 +427,7 @@ const I18N = {
     mode_flags: 'Flags',
     mode_platforms: 'Platforms',
     mode_symbols: 'Symbols',
+    mode_numbers: '# Numbers',
     view_list: 'List view',
     view_grid: 'Grid view',
     flag_style_label: 'Flag Style',
@@ -905,6 +908,13 @@ function renderFlagImage(item, size = 80, extraClass = '') {
 function isFlagsMode() { return currentMode === 'flags'; }
 function isPlatformsMode() { return currentMode === 'platforms'; }
 function isSymbolsMode() { return currentMode === 'symbols'; }
+function isNumbersMode() { return currentMode === 'numbers'; }
+
+function renderNumberIcon(item, sizeClass = '') {
+  const label = escapeHtml(item.name);
+  const num = escapeHtml(String(item.num || '?'));
+  return `<span class="symbol-icon number-icon ${sizeClass}" style="background:${escapeHtml(item.color)};color:#000;font-weight:900;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;" aria-hidden="true">#${num}</span><span class="sr-only">${label}</span>`;
+}
 
 function renderSymbolIcon(item, sizeClass = '') {
   const icon = escapeHtml(item.icon || 'circle');
@@ -1664,6 +1674,7 @@ function init() {
   btnFlagsMode.addEventListener('click', () => requestModeChange('flags'));
   btnPlatformsMode.addEventListener('click', () => requestModeChange('platforms'));
   if (btnSymbolsMode) btnSymbolsMode.addEventListener('click', () => requestModeChange('symbols'));
+  if (btnNumbersMode) btnNumbersMode.addEventListener('click', () => requestModeChange('numbers'));
   
   // ── Flag style selector ──
   const flagStyleSelect = document.getElementById('flagStyleSelect');
@@ -2304,6 +2315,12 @@ function processFilter(countries) {
         case 'tactical': matchTag = c.filters.includes('tactical'); break;
         case 'support':  matchTag = c.filters.includes('support'); break;
       }
+    } else if (isNumbersMode()) {
+      switch (currentFilter) {
+        case 'top': matchTag = c.num <= 16; break;
+        case 'squads': matchTag = c.num <= 32; break;
+        case 'teams': matchTag = c.num <= 64; break;
+      }
     }
     return matchSearch && matchTag;
   });
@@ -2370,6 +2387,13 @@ function renderLibrary() {
              style="background: ${c.color}; padding: 4px;"
              onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
         <div class="platform-fallback" style="display:none; width:26px; height:18px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white;">${initial}</div>
+        <div class="item-name" title="${c.name}">${displayName}</div>
+        <div class="item-tag">${c.category}</div>
+      `;
+      div.setAttribute('data-tooltip', `${c.tag} • ${c.category}`);
+    } else if (isNumbersMode()) {
+      div.innerHTML = `
+        ${renderNumberIcon(c)}
         <div class="item-name" title="${c.name}">${displayName}</div>
         <div class="item-tag">${c.category}</div>
       `;
@@ -2500,6 +2524,8 @@ function renderRoster() {
            alt="${c.name}"
            onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
       <div class="platform-fallback" style="display:none; width:26px; height:18px; background:${c.color}; border-radius:3px; flex-shrink:0; align-items:center; justify-content:center; font-size:0.7rem; font-weight:700; color:white;">${initial}</div>`;
+    } else if (isNumbersMode()) {
+      imgHtml = renderNumberIcon(c, 'symbol-icon-sm');
     } else {
       imgHtml = renderSymbolIcon(c, 'symbol-icon-sm');
     }
@@ -2931,6 +2957,48 @@ function drawSymbolGlyph(context, icon, cx, cy, size, color) {
   context.restore();
 }
 
+function drawNumberToCanvas(context, item, number, S) {
+  context.clearRect(0, 0, S, S);
+  const baseColor = item.color || '#FACC15';
+  context.save();
+  if (bgTransparent.checked) {
+    context.fillStyle = baseColor;
+    context.fillRect(0, 0, S, S);
+  } else {
+    drawCanvasBackground(context, S, item);
+  }
+
+  const pad = S * 0.08;
+  const boxW = S - pad * 2;
+  const boxH = S - pad * 2;
+  context.beginPath();
+  roundedRectPath(context, pad, pad, boxW, boxH, S * 0.16);
+  context.fillStyle = baseColor;
+  context.fill();
+  context.strokeStyle = 'rgba(255,255,255,0.45)';
+  context.lineWidth = Math.max(2, S * 0.02);
+  context.stroke();
+
+  const fontHeight = Math.floor(S * 0.58);
+  const font = fontSelect.value || 'Impact';
+  const textVal = customText.value.trim() || String(item.num || number);
+
+  context.font = `900 ${fontHeight}px "${font}", sans-serif`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.lineJoin = 'round';
+  context.miterLimit = 2;
+
+  context.lineWidth = Math.max(4, fontHeight * 0.18);
+  context.strokeStyle = strokeColor.value || '#000000';
+  context.strokeText(textVal, S / 2, S / 2 + fontHeight * 0.04);
+
+  context.fillStyle = numberColor.value || '#000000';
+  context.fillText(textVal, S / 2, S / 2 + fontHeight * 0.04);
+
+  context.restore();
+}
+
 function drawSymbolToCanvas(context, item, number, S) {
   context.clearRect(0, 0, S, S);
   const baseColor = item.color || '#334155';
@@ -2966,6 +3034,10 @@ function updatePreview(country, number) {
 
   if (isSymbolsMode()) {
     drawSymbolToCanvas(ctx, country, number, S);
+    return;
+  }
+  if (isNumbersMode()) {
+    drawNumberToCanvas(ctx, country, number, S);
     return;
   }
 
@@ -3052,6 +3124,8 @@ function showPreviewModal() {
            src="${logo.primary}" data-fallback="${logo.fallback}" alt="${c.name}" loading="lazy"
            onerror="this.onerror=null; if (this.dataset.fallback) { this.src=this.dataset.fallback; } else { this.style.display='none'; this.nextElementSibling.style.display='flex'; }">
       <div class="platform-fallback" style="display:none; width:56px; height:38px; background:${c.color}; border-radius:4px; flex-shrink:0; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; color:white;">${initial}</div>`;
+    } else if (isNumbersMode()) {
+      imgHtml = renderNumberIcon(c, 'symbol-icon-lg');
     } else {
       imgHtml = renderSymbolIcon(c, 'symbol-icon-lg');
     }
@@ -3273,6 +3347,9 @@ function generateBat() {
 function generatePreviewHtml() {
   const startNum = getStartNum();
   const items = selectedSlots.map((c,i) => {
+    if (isNumbersMode()) {
+      return `<div class="item"><div class="symbol-preview" style="background:${escapeHtml(c.color)};color:#000;font-weight:900;">#${c.num}</div><span class="n">${i+startNum}</span><span class="nm">${escapeHtml(c.name)}</span></div>`;
+    }
     if (isSymbolsMode()) {
       return `<div class="item"><div class="symbol-preview" style="background:${escapeHtml(c.color)}">${escapeHtml((c.name || c.tag || '?').charAt(0).toUpperCase())}</div><span class="n">${i+startNum}</span><span class="nm">${escapeHtml(c.name)}</span></div>`;
     }
@@ -3290,6 +3367,11 @@ function generatePreviewHtml() {
 // ─── FETCH + DRAW (for export) ───────────────────────────────
 function fetchImageAndDraw(item, number, can, ctx2d, S) {
   return new Promise(resolve => {
+    if (isNumbersMode()) {
+      drawNumberToCanvas(ctx2d, item, number, S);
+      can.toBlob(blob => resolve(blob), 'image/png');
+      return;
+    }
     if (isSymbolsMode()) {
       drawSymbolToCanvas(ctx2d, item, number, S);
       can.toBlob(blob => resolve(blob), 'image/png');
@@ -3921,12 +4003,13 @@ function setMode(mode, options = {}) {
   if (currentMode === mode) return;
   
   currentMode = mode;
-  currentDB = mode === 'flags' ? db : mode === 'symbols' ? symbolsDB : (platformsDBFiltered || platformsDB);
+  currentDB = mode === 'flags' ? db : mode === 'symbols' ? symbolsDB : mode === 'numbers' ? numbersDB : (platformsDBFiltered || platformsDB);
   
   // Update UI
   btnFlagsMode.classList.toggle('active', mode === 'flags');
   btnPlatformsMode.classList.toggle('active', mode === 'platforms');
   if (btnSymbolsMode) btnSymbolsMode.classList.toggle('active', mode === 'symbols');
+  if (btnNumbersMode) btnNumbersMode.classList.toggle('active', mode === 'numbers');
   
   // Update labels
   updateModeLabels();
@@ -3939,7 +4022,9 @@ function setMode(mode, options = {}) {
   document.body.classList.toggle('platforms-mode', mode === 'platforms');
   document.documentElement.classList.toggle('symbols-mode', mode === 'symbols');
   document.body.classList.toggle('symbols-mode', mode === 'symbols');
-  if (mode === 'platforms' || mode === 'symbols') {
+  document.documentElement.classList.toggle('numbers-mode', mode === 'numbers');
+  document.body.classList.toggle('numbers-mode', mode === 'numbers');
+  if (mode === 'platforms' || mode === 'symbols' || mode === 'numbers') {
     bgColorInput.value = '#000000';
     bgTransparent.checked = false;
   }
