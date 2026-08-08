@@ -1,4 +1,4 @@
-const CACHE_NAME = 'flagforge-v1';
+const CACHE_NAME = 'flagforge-v2';
 const ASSETS = [
   './',
   './index.html',

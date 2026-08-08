@@ -1549,13 +1549,16 @@ function init() {
       if (savedMode && savedMode !== currentMode) {
         setMode(savedMode, { skipConfirm: true, skipUndo: true, silent: true });
       }
+      const safeNumbersDB = typeof numbersDB !== 'undefined' ? numbersDB : [];
       const sources = savedMode === 'platforms'
         ? [platformsDB]
         : savedMode === 'symbols'
           ? [symbolsDB]
-          : savedMode === 'flags'
-            ? [db]
-            : [db, platformsDB, symbolsDB];
+          : savedMode === 'numbers'
+            ? [safeNumbersDB]
+            : savedMode === 'flags'
+              ? [db]
+              : [db, platformsDB, symbolsDB, safeNumbersDB];
       saved.forEach(identifier => {
         const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
         if (c) selectedSlots.push(c);
@@ -4030,7 +4033,8 @@ function setMode(mode, options = {}) {
   if (currentMode === mode) return;
   
   currentMode = mode;
-  currentDB = mode === 'flags' ? db : mode === 'symbols' ? symbolsDB : mode === 'numbers' ? numbersDB : (platformsDBFiltered || platformsDB);
+  const safeNumbersDB = typeof numbersDB !== 'undefined' ? numbersDB : [];
+  currentDB = mode === 'flags' ? db : mode === 'symbols' ? symbolsDB : mode === 'numbers' ? safeNumbersDB : (platformsDBFiltered || platformsDB);
   
   // Update UI
   btnFlagsMode.classList.toggle('active', mode === 'flags');
