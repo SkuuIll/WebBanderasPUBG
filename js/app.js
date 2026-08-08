@@ -2957,29 +2957,56 @@ function drawSymbolGlyph(context, icon, cx, cy, size, color) {
   context.restore();
 }
 
+function hexToRgba(hex, alpha = 1) {
+  if (!hex || typeof hex !== 'string' || !hex.startsWith('#')) return `rgba(250, 204, 21, ${alpha})`;
+  let c = hex.slice(1);
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const num = parseInt(c, 16);
+  if (isNaN(num)) return `rgba(250, 204, 21, ${alpha})`;
+  const r = (num >> 16) & 255;
+  const g = (num >> 8) & 255;
+  const b = num & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 function drawNumberToCanvas(context, item, number, S) {
   context.clearRect(0, 0, S, S);
   const baseColor = item.color || '#FACC15';
   context.save();
-  if (bgTransparent.checked) {
-    context.fillStyle = baseColor;
-    context.fillRect(0, 0, S, S);
-  } else {
+
+  if (!bgTransparent.checked) {
     drawCanvasBackground(context, S, item);
   }
 
-  const pad = S * 0.08;
+  const pad = S * 0.05;
   const boxW = S - pad * 2;
   const boxH = S - pad * 2;
+  const cx = S / 2;
+  const cy = S / 2;
+
+  // Radial gradient originating from number center outwards to fill the full square box
+  const radGrad = context.createRadialGradient(cx, cy, S * 0.02, cx, cy, S * 0.65);
+  radGrad.addColorStop(0, baseColor);
+  radGrad.addColorStop(0.35, hexToRgba(baseColor, 0.85));
+  radGrad.addColorStop(0.75, hexToRgba(baseColor, 0.30));
+  radGrad.addColorStop(1, '#090d16');
+
   context.beginPath();
-  roundedRectPath(context, pad, pad, boxW, boxH, S * 0.16);
-  context.fillStyle = baseColor;
+  roundedRectPath(context, pad, pad, boxW, boxH, S * 0.14);
+  context.fillStyle = radGrad;
   context.fill();
-  context.strokeStyle = 'rgba(255,255,255,0.45)';
-  context.lineWidth = Math.max(2, S * 0.02);
+
+  // Vibrant neon border matching radial gradient glow
+  context.shadowColor = baseColor;
+  context.shadowBlur = S * 0.06;
+  context.strokeStyle = baseColor;
+  context.lineWidth = Math.max(2, S * 0.022);
   context.stroke();
 
-  const fontHeight = Math.floor(S * 0.58);
+  context.shadowColor = 'transparent';
+
+  // Extra Large High-Vis Number
+  const fontHeight = Math.floor(S * 0.60);
   const font = fontSelect.value || 'Impact';
   const textVal = customText.value.trim() || String(item.num || number);
 
@@ -2989,12 +3016,14 @@ function drawNumberToCanvas(context, item, number, S) {
   context.lineJoin = 'round';
   context.miterLimit = 2;
 
-  context.lineWidth = Math.max(4, fontHeight * 0.18);
+  // Deep black double-stroke outline around text
+  context.lineWidth = Math.max(6, fontHeight * 0.20);
   context.strokeStyle = strokeColor.value || '#000000';
-  context.strokeText(textVal, S / 2, S / 2 + fontHeight * 0.04);
+  context.strokeText(textVal, cx, cy + fontHeight * 0.04);
 
-  context.fillStyle = numberColor.value || '#000000';
-  context.fillText(textVal, S / 2, S / 2 + fontHeight * 0.04);
+  // High contrast white or selected color fill
+  context.fillStyle = numberColor.value || '#FFFFFF';
+  context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
   context.restore();
 }
