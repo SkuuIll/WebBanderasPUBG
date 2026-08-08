@@ -2002,6 +2002,19 @@ function setupAccessibility() {
   progressContainer.setAttribute('role', 'progressbar');
   progressContainer.setAttribute('aria-valuemin', '0');
   progressContainer.setAttribute('aria-valuemax', '100');
+
+  // Accordion ARIA attributes
+  document.querySelectorAll('details.accordion').forEach((details, idx) => {
+    const summary = details.querySelector('summary');
+    if (summary) {
+      summary.setAttribute('role', 'button');
+      summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+      summary.setAttribute('tabindex', '0');
+      details.addEventListener('toggle', () => {
+        summary.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+      });
+    }
+  });
 }
 
 // ─── KEYBOARD SHORTCUTS ──────────────────────────────────────
