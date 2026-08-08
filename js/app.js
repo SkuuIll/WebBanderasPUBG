@@ -2334,6 +2334,7 @@ function processFilter(countries) {
 }
 
 function getSorted(arr) {
+  if (isNumbersMode()) return [...arr];
   const sortMode = sortSelect ? sortSelect.value : 'alpha';
   return [...arr].sort((a, b) => {
     if (sortMode === 'alpha')      return a.name.localeCompare(b.name);
@@ -2981,10 +2982,7 @@ function drawNumberToCanvas(context, item, number, S) {
   const baseColor = item.color || '#FACC15';
   context.save();
 
-  if (!bgTransparent.checked) {
-    drawCanvasBackground(context, S, item);
-  }
-
+  // GIANT NUMBER filling the entire box without background
   const cx = S / 2;
   const cy = S / 2;
 

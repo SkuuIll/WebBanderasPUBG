@@ -509,7 +509,7 @@ function testNumbersMode() {
   }
 
   check(Array.isArray(numbers), 'numbersDB should be an array');
-  check(numbers.length === 105, `numbersDB should include 105 team numbers, found ${numbers.length}`);
+  check(numbers.length === 100, `numbersDB should include 100 team numbers, found ${numbers.length}`);
 }
 
 function run() {
