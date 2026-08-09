@@ -2456,18 +2456,18 @@ kbd {
 /* ─── VIEW TOGGLE ───────────────────────────────────────────── */
 .mode-toggle {
   display: flex;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   background: var(--bg-accent);
   border-radius: var(--radius-sm);
   overflow: hidden;
   border: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 .mode-btn {
   height: 30px;
-  flex: 1;
-  min-width: 0;
-  padding: 0 6px;
+  flex: 1 1 auto;
+  padding: 0 8px;
   background: none;
   border: none;
   color: var(--text-muted);
