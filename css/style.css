@@ -550,6 +550,7 @@ html:not(.theme-ready) *::after {
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 
@@ -995,6 +996,8 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
   background: var(--bg-accent);
   border-radius: var(--radius-sm);
   padding: 2px;
+  flex-wrap: wrap;
+  flex: 1;
 }
 .mode-btn {
   background: transparent;
@@ -1007,7 +1010,10 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
   font-size: 0.75rem;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  white-space: nowrap;
+  flex: 1;
 }
 .mode-btn [data-lucide] { width: 12px; height: 12px; }
 .mode-btn:hover { color: var(--text-primary); background: var(--bg-hover); }
@@ -1086,7 +1092,7 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
 .workspace {
   flex: 1;
   padding: 24px;
-  overflow-y: auto;
+  overflow-y: hidden;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -1200,7 +1206,7 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
 .workspace-content {
   display: flex;
   gap: 18px;
-  flex: 0 0 auto;
+  flex: 1;
   align-items: stretch;
   min-height: 0;
   transition: flex-direction 0.3s cubic-bezier(0.4, 0, 0.2, 1),
@@ -1319,12 +1325,12 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
 .controls-form {
   padding: 16px 16px 24px;
   margin-top: 12px;
-  flex: 0 0 auto;
+  flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  overflow: visible;
+  overflow-y: auto;
   transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -1647,6 +1653,7 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex-shrink: 0;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1),
               gap 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -3551,6 +3558,7 @@ img[loading="lazy"] {
   .workspace {
     padding: 12px;
     flex-direction: column;
+    overflow-y: auto;
   }
   
   .workspace-header {
