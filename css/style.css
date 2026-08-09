@@ -1253,15 +1253,58 @@ body.symbols-mode:not(.light) .library-list .item-card:hover {
 .ph-icon-svg { width: 40px; height: 40px; opacity: 0.25; }
 .ph-text  { font-size: 0.8rem; text-align: center; line-height: 1.6; opacity: 0.6; }
 
-.preview-country-name {
-  text-align: center;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border-subtle);
+/* ─── PREVIEW META BAR ───────────────────────────────────────── */
+.preview-meta-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 14px;
   background: var(--bg-card);
-  min-height: 34px;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 32px;
+}
+
+.preview-country-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.preview-country-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.export-resolution-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--primary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.export-resolution-hint [data-lucide],
+.export-resolution-hint svg.lucide,
+.preview-country-badge [data-lucide],
+.preview-country-badge svg.lucide {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 /* Controls */

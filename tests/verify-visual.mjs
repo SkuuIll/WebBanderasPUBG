@@ -81,11 +81,27 @@ server.listen(PORT, async () => {
     });
     console.log('Mode toggle layout:\n', JSON.stringify(modeToggleBox, null, 2));
 
-    // 3. Add flags and check export footer visibility
-    await page.click('#btnAddAll');
+    // 3. Add flags and test different number digits (1, 15, 100)
+    await page.click('#btnCompetitiveMode');
     await new Promise(r => setTimeout(r, 600));
-    await page.screenshot({ path: path.join(outDir, 'desktop_with_flags.png') });
-    console.log('Saved desktop_with_flags.png');
+
+    // Check preview for 1 digit (#1)
+    await page.click('.roster-item[data-idx="0"]');
+    await new Promise(r => setTimeout(r, 300));
+    await page.screenshot({ path: path.join(outDir, 'preview_digit_1.png') });
+    console.log('Saved preview_digit_1.png (1 digit)');
+
+    // Check preview for 2 digits (#15)
+    await page.click('.roster-item[data-idx="14"]');
+    await new Promise(r => setTimeout(r, 300));
+    await page.screenshot({ path: path.join(outDir, 'preview_digit_15.png') });
+    console.log('Saved preview_digit_15.png (2 digits)');
+
+    // Check preview for 3 digits (#100)
+    await page.click('.roster-item[data-idx="99"]');
+    await new Promise(r => setTimeout(r, 300));
+    await page.screenshot({ path: path.join(outDir, 'preview_digit_100.png') });
+    console.log('Saved preview_digit_100.png (3 digits)');
 
     const exportFooterVisible = await page.$eval('.export-footer', el => {
       const r = el.getBoundingClientRect();
@@ -98,11 +114,6 @@ server.listen(PORT, async () => {
       };
     });
     console.log('Export footer visibility:\n', JSON.stringify(exportFooterVisible, null, 2));
-
-    // 4. Test Mobile viewport
-    await page.setViewport({ width: 390, height: 844 });
-    await page.screenshot({ path: path.join(outDir, 'mobile_view.png') });
-    console.log('Saved mobile_view.png');
 
     await browser.close();
     console.log('VISUAL VERIFICATION COMPLETE: SUCCESS');

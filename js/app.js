@@ -2896,11 +2896,42 @@ function drawBadgeOnCanvas(context, text, S) {
   const customTxt = customText.value.trim();
   if (customTxt) text = customTxt;
 
-  const fontHeight  = Math.floor(S * sizePct);
-  const strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
+  const textStr = String(text);
+  let digitScale = 1.0;
+  if (/^\d$/.test(textStr)) {
+    // 1 dígito (1 al 9): tamaño mayor (+28%) para máximo impacto visual
+    digitScale = 1.28;
+  } else if (/^\d{2}$/.test(textStr)) {
+    // 2 dígitos (10 al 99): tamaño estándar (100%)
+    digitScale = 1.0;
+  } else if (/^\d{3,}$/.test(textStr)) {
+    // 3 o más dígitos (100+): escala proporcional (-24%) para evitar recortes
+    digitScale = 0.76;
+  } else if (textStr.length === 1) {
+    digitScale = 1.25;
+  } else if (textStr.length >= 3) {
+    digitScale = Math.max(0.6, 1.8 / textStr.length);
+  }
+
+  let fontHeight = Math.floor(S * sizePct * digitScale);
+  let strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
 
   context.save();
   context.globalAlpha = opacityPct;
+
+  // Pre-medición y ajuste de seguridad si excede el ancho útil del lienzo
+  context.font = `900 ${fontHeight}px "${font}", sans-serif`;
+  let metrics = context.measureText(text);
+  let tw = (metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft) || metrics.width;
+  const maxAllowableWidth = S * 0.94;
+  if (tw > maxAllowableWidth && maxAllowableWidth > 0) {
+    const adjustFactor = maxAllowableWidth / tw;
+    fontHeight = Math.floor(fontHeight * adjustFactor);
+    strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
+    context.font = `900 ${fontHeight}px "${font}", sans-serif`;
+    metrics = context.measureText(text);
+    tw = (metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft) || metrics.width;
+  }
 
   // Shadow
   if (shadowToggle.checked) {
@@ -2910,12 +2941,9 @@ function drawBadgeOnCanvas(context, text, S) {
     context.shadowOffsetY = Math.max(2, fontHeight * 0.04);
   }
 
-  context.font      = `900 ${fontHeight}px "${font}", sans-serif`;
   context.lineJoin  = 'round';
   context.miterLimit = 2;
 
-  const metrics = context.measureText(text);
-  const tw = (metrics.actualBoundingBoxRight + metrics.actualBoundingBoxLeft) || metrics.width;
   const th = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) || fontHeight;
   const asc = metrics.actualBoundingBoxAscent || fontHeight;
   const l   = metrics.actualBoundingBoxLeft   || 0;
@@ -3093,13 +3121,38 @@ function drawNumberToCanvas(context, item, number, S) {
   // Apply opacity
   context.globalAlpha = opacityPct;
 
-  // Font height scaled by the size slider (55% default → ~88% of S which is a big number)
-  const fontHeight = Math.floor(S * (sizePct * 1.6));
+  const textStr = String(textVal);
+  let digitScale = 1.0;
+  if (/^\d$/.test(textStr)) {
+    // 1 dígito (1 al 9): tamaño mayor (+25%)
+    digitScale = 1.25;
+  } else if (/^\d{2}$/.test(textStr)) {
+    // 2 dígitos (10 al 99): tamaño estándar
+    digitScale = 1.0;
+  } else if (/^\d{3,}$/.test(textStr)) {
+    // 3+ dígitos (100+): proporción ajustada
+    digitScale = 0.78;
+  } else if (textStr.length === 1) {
+    digitScale = 1.22;
+  } else if (textStr.length >= 3) {
+    digitScale = Math.max(0.65, 1.8 / textStr.length);
+  }
+
+  // Font height scaled by the size slider and digit scale
+  let fontHeight = Math.floor(S * (sizePct * 1.6) * digitScale);
 
   const cx = S / 2;
   const cy = S / 2;
 
   context.font = `900 ${fontHeight}px "${font}", sans-serif`;
+  let metrics = context.measureText(textVal);
+  let tw = metrics.width;
+  const maxAllowableWidth = S * 0.88;
+  if (tw > maxAllowableWidth && maxAllowableWidth > 0) {
+    fontHeight = Math.floor(fontHeight * (maxAllowableWidth / tw));
+    context.font = `900 ${fontHeight}px "${font}", sans-serif`;
+  }
+
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   context.lineJoin = 'round';
@@ -4380,8 +4433,13 @@ function syncModeUIStrings() {
 
   // Update resolution indicator
   const S = parseInt(exportSizeInput.value, 10) || CONFIG.DEFAULT_EXPORT_SIZE;
+  const resVal = document.getElementById('exportResValue');
   const resHint = document.getElementById('exportResolutionHint');
-  if (resHint) resHint.textContent = `■ Exportación: ${S} × ${S} px`;
+  if (resVal) {
+    resVal.textContent = `${S} × ${S} px`;
+  } else if (resHint) {
+    resHint.textContent = `${S} × ${S} px`;
+  }
 
   if (canvasPlaceholderText) {
     canvasPlaceholderText.innerHTML = isSymbolsMode()
