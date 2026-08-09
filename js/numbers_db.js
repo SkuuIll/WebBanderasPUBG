@@ -1,4 +1,4 @@
-const numbersDB = Array.from({ length: 100 }, (_, i) => {
+const numbersDB = Array.from({ length: 101 }, (_, i) => {
   const num = i + 1;
   const colors = ['#FACC15', '#06B6D4', '#EF4444', '#10B981', '#A855F7', '#F97316', '#3B82F6', '#EC4899'];
   const color = colors[i % colors.length];

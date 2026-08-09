@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://flagcdn.com https://cdn.simpleicons.org https://kapowaz.github.io https://www.vectorlogo.zone data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://flagcdn.com https://cdn.simpleicons.org https://kapowaz.github.io https://www.vectorlogo.zone data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;">
   <title>FlagForge Studio | Editor de Banderas y Logos</title>
   <meta name="description" content="Herramienta profesional para generar packs de banderas y logos de plataformas con números personalizados para PUBG Observer. Exporta en ZIP listo para usar en overlays de stream.">
   <meta name="color-scheme" content="light dark">
@@ -50,8 +50,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&family=Anton&family=Teko:wght@700&family=Bungee&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=20260617-symbols">
+  <!-- JSZip 3.10.1 – estable, sin cambios desde 2022 -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <!-- Lucide fijado a versión estable; @latest puede romperse sin aviso -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.511.0/dist/umd/lucide.min.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main" data-i18n="skip_to_content">Saltar al contenido</a>
@@ -86,7 +88,8 @@
         <input type="text" id="searchInput" class="global-search" placeholder="Buscar..." autocomplete="off"
                data-placeholder-flags="Buscar país, código ISO o continente..."
                data-placeholder-platforms="Buscar plataforma, tag o categoría..."
-               data-placeholder-symbols="Buscar símbolo, tag o categoría...">
+               data-placeholder-symbols="Buscar símbolo, tag o categoría..."
+               data-placeholder-numbers="Buscar número de equipo...">
         <span id="searchResultCount" class="search-result-count"></span>
         <button id="btnClearSearch" class="clear-search-btn" title="Limpiar búsqueda" data-i18n-attr="title:search_clear">
           <i data-lucide="x"></i>
@@ -278,6 +281,7 @@
           </div>
 
           <div class="preview-country-name" id="previewCountryName">—</div>
+          <div class="export-resolution-hint" id="exportResolutionHint" title="Resolución de exportación"></div>
 
           <div class="controls-form">
             <div class="form-section-title">
@@ -324,6 +328,15 @@
                     <button class="preset-chip" data-preset="rgb_neon" title="RGB Neón: Efecto arcoíris brillante con colores llamativos." data-i18n-attr="title:preset_rgb_title">
                       <i data-lucide="palette"></i> <span data-i18n="preset_rgb">RGB Neón</span>
                     </button>
+                  </div>
+                </div>
+                <div class="control-row custom-preset-row">
+                  <div class="custom-preset-actions">
+                    <button class="btn-sm-secondary" id="btnSaveCustomPreset" title="Guardar la configuración actual como preset personalizado">
+                      <i data-lucide="bookmark-plus"></i>
+                      <span data-i18n="btn_save_custom_preset">Guardar preset</span>
+                    </button>
+                    <div id="customPresetChips" class="custom-preset-chips"></div>
                   </div>
                 </div>
               </div>
@@ -777,7 +790,8 @@
         <input type="text" id="searchModalInput" class="search-modal-input" placeholder="Buscar..." autocomplete="off"
                data-placeholder-flags="Buscar país, código ISO o continente..."
                data-placeholder-platforms="Buscar plataforma, tag o categoría..."
-               data-placeholder-symbols="Buscar símbolo, tag o categoría...">
+               data-placeholder-symbols="Buscar símbolo, tag o categoría..."
+               data-placeholder-numbers="Buscar número de equipo...">
       </div>
       <button class="search-modal-close" id="searchModalClose" aria-label="Cerrar búsqueda" data-i18n-attr="aria-label:search_close">
         <i data-lucide="x"></i>

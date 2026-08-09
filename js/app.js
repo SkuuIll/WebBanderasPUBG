@@ -338,6 +338,7 @@ const I18N = {
     placeholder_preview_flags: 'Seleccioná una bandera<br>para ver la vista previa',
     placeholder_preview_platforms: 'Seleccioná una plataforma<br>para ver la vista previa',
     placeholder_preview_symbols: 'Seleccioná un símbolo<br>para ver la vista previa',
+    placeholder_preview_numbers: 'Seleccioná un número<br>para ver la vista previa',
     filter_all: 'Todos',
     filter_popular: 'Populares',
     filter_esports: 'PUBG Esports',
@@ -387,6 +388,7 @@ const I18N = {
     toast_all_selected_already: 'Ya están todos seleccionados',
     toast_random_added: '+{{count}} {{items}} aleatorios 🎲',
     toast_competitive_ready: 'Modo competitivo listo: {{count}} banderas únicas 🏆',
+    btn_save_custom_preset: 'Guardar preset',
     toast_theme_light: 'Tema claro activado',
     toast_theme_dark: 'Tema oscuro activado',
     toast_removed: '{{name}} eliminado',
@@ -602,6 +604,7 @@ const I18N = {
     placeholder_preview_flags: 'Select a flag<br>to see the preview',
     placeholder_preview_platforms: 'Select a platform<br>to see the preview',
     placeholder_preview_symbols: 'Select a symbol<br>to see the preview',
+    placeholder_preview_numbers: 'Select a number<br>to see the preview',
     filter_all: 'All',
     filter_popular: 'Popular',
     filter_esports: 'PUBG Esports',
@@ -651,6 +654,7 @@ const I18N = {
     toast_all_selected_already: 'Everything is already selected',
     toast_random_added: '+{{count}} random {{items}} 🎲',
     toast_competitive_ready: 'Competitive mode ready: {{count}} unique flags 🏆',
+    btn_save_custom_preset: 'Save preset',
     toast_theme_light: 'Light theme enabled',
     toast_theme_dark: 'Dark theme enabled',
     toast_removed: '{{name}} removed',
@@ -1240,6 +1244,74 @@ function getCurrentSettings() {
   };
 }
 
+// ─── CUSTOM PRESETS (persisted in localStorage) ────────────────────
+const CUSTOM_PRESET_KEY = 'flagforge_custom_presets';
+
+function loadCustomPresets() {
+  try { return JSON.parse(localStorage.getItem(CUSTOM_PRESET_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function saveCustomPreset() {
+  const name = prompt('Nombre del preset (max 20 chars):', 'Mi Preset');
+  if (!name || !name.trim()) return;
+  const label = name.trim().slice(0, 20);
+  const presets = loadCustomPresets();
+  // Avoid duplicate names
+  const existing = presets.findIndex(p => p.label === label);
+  const entry = { label, settings: getCurrentSettings() };
+  if (existing >= 0) {
+    if (!confirm(`¿Sobreescribir el preset "${label}"?`)) return;
+    presets[existing] = entry;
+  } else {
+    presets.push(entry);
+  }
+  try {
+    localStorage.setItem(CUSTOM_PRESET_KEY, JSON.stringify(presets));
+    renderCustomPresetChips();
+    showToast(`Preset "${label}" guardado`, 'success');
+  } catch {
+    showToast('No se pudo guardar el preset', 'error');
+  }
+}
+
+function deleteCustomPreset(label) {
+  const presets = loadCustomPresets().filter(p => p.label !== label);
+  try {
+    localStorage.setItem(CUSTOM_PRESET_KEY, JSON.stringify(presets));
+    renderCustomPresetChips();
+    showToast(`Preset "${label}" eliminado`, 'error');
+  } catch {}
+}
+
+function renderCustomPresetChips() {
+  const container = document.getElementById('customPresetChips');
+  if (!container) return;
+  const presets = loadCustomPresets();
+  container.innerHTML = '';
+  if (!presets.length) return;
+
+  presets.forEach(p => {
+    const chip = document.createElement('button');
+    chip.className = 'preset-chip custom-preset-chip';
+    chip.title = `Aplicar "${p.label}" (clic derecho para eliminar)`;
+    chip.innerHTML = `<i data-lucide="bookmark"></i> <span>${escapeHtml(p.label)}</span>`;
+    chip.addEventListener('click', () => {
+      applySettings(p.settings);
+      refreshPreview();
+      showToast(`Preset "${p.label}" aplicado`, 'success');
+      // Deselect built-in preset chips
+      document.querySelectorAll('.preset-chip:not(.custom-preset-chip)').forEach(c => c.classList.remove('active'));
+    });
+    chip.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      if (confirm(`¿Eliminar preset "${p.label}"?`)) deleteCustomPreset(p.label);
+    });
+    container.appendChild(chip);
+  });
+  if (window.lucide) lucide.createIcons({ nodes: [...container.querySelectorAll('[data-lucide]')] });
+}
+
 function applyFlagStyleSetting(style) {
   const normalized = normalizeFlagStyle(style);
   currentFlagStyle = normalized;
@@ -1252,8 +1324,10 @@ function downloadBlob(blob, filename) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  // BUG FIX: revokeObjectURL with 0ms can fire before the browser processes the click
+  // in some browsers. Using a small delay ensures the download initiates first.
+  a.addEventListener('click', () => setTimeout(() => URL.revokeObjectURL(url), 100), { once: true });
   a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 function escapeCsvCell(value) {
@@ -1797,12 +1871,14 @@ function init() {
     showToast(added ? t('toast_added_count', { count: added, items }) : t('toast_all_selected'), added ? 'success' : '');
   });
   btnRandomize.addEventListener('click', () => {
-    const pool = db.filter(c => !selectedSlots.includes(c));
+    // BUG FIX: use currentDB so it works in all modes, not just flags
+    const pool = (currentDB || db).filter(c => !selectedSlots.includes(c));
     if (!pool.length) { showToast(t('toast_all_selected_already')); return; }
     const count = Math.min(5, pool.length);
-    shuffle(pool);
+    const poolCopy = [...pool];
+    shuffle(poolCopy);
     pushUndo();
-    pool.slice(0, count).forEach(c => selectedSlots.push(c));
+    poolCopy.slice(0, count).forEach(c => selectedSlots.push(c));
     updateUI();
     const items = getItemLabelForCount(count);
     showToast(t('toast_random_added', { count, items }), 'success');
@@ -2081,6 +2157,19 @@ function handleKeyboard(e) {
     if (e.key === 'c' && !inInput) { e.preventDefault(); copyCanvasToClipboard(); return; }
     if (e.key === 's') { e.preventDefault(); saveRoster(); return; }
     if (e.key === 'e') { e.preventDefault(); if (!btnGenerate.disabled) generatePack(); return; }
+    // Ctrl+D — duplicate active item
+    if (e.key === 'd' && !inInput) {
+      e.preventDefault();
+      if (currentPreviewIdx >= 0 && currentPreviewIdx < selectedSlots.length) {
+        pushUndo();
+        const dup = selectedSlots[currentPreviewIdx];
+        selectedSlots.splice(currentPreviewIdx + 1, 0, dup);
+        currentPreviewIdx++;
+        updateUI();
+        showToast(t('toast_duplicated', { name: dup.name }), 'success');
+      }
+      return;
+    }
   }
 }
 
@@ -2108,15 +2197,16 @@ async function copyCanvasToClipboard() {
     showToast(t('toast_copy_unavailable'), 'error');
     return;
   }
-  try {
-    canvas.toBlob(async blob => {
+  // BUG FIX: move try/catch inside the blob callback so async errors are caught
+  canvas.toBlob(async blob => {
+    try {
       const item = new ClipboardItem({ 'image/png': blob });
       await navigator.clipboard.write([item]);
       showToast(t('toast_copied_clipboard'), 'success');
-    }, 'image/png');
-  } catch(err) {
-    showToast(t('toast_copy_error'), 'error');
-  }
+    } catch(err) {
+      showToast(t('toast_copy_error'), 'error');
+    }
+  }, 'image/png');
 }
 
 async function downloadSingleCanvas() {
@@ -2214,19 +2304,23 @@ function processRosterFile(file) {
     try {
       const data = JSON.parse(ev.target.result);
       if (!data.slots || !Array.isArray(data.slots)) throw new Error('Formato inválido');
-      const modeFromFile = data.mode === 'platforms' || data.mode === 'symbols' || data.mode === 'flags' ? data.mode : null;
+      // BUG FIX: include 'numbers' mode
+      const modeFromFile = ['platforms', 'symbols', 'flags', 'numbers'].includes(data.mode) ? data.mode : null;
       if (modeFromFile && modeFromFile !== currentMode) {
         setMode(modeFromFile, { skipConfirm: true, skipUndo: true, silent: true });
       }
       pushUndo();
       selectedSlots = [];
+      const safeNumbersDB = typeof numbersDB !== 'undefined' ? numbersDB : [];
       const sources = modeFromFile === 'platforms'
         ? [platformsDB]
         : modeFromFile === 'symbols'
           ? [symbolsDB]
-          : modeFromFile === 'flags'
-            ? [db]
-            : [db, platformsDB, symbolsDB];
+          : modeFromFile === 'numbers'
+            ? [safeNumbersDB]
+            : modeFromFile === 'flags'
+              ? [db]
+              : [db, platformsDB, symbolsDB, safeNumbersDB];
       data.slots.forEach(identifier => {
         const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
         if (c) selectedSlots.push(c);
@@ -2245,12 +2339,21 @@ function processRosterFile(file) {
 
 function applySharedData(data) {
   if (!data || !Array.isArray(data.slots)) return false;
-  const modeFromData = data.mode === 'platforms' || data.mode === 'symbols' || data.mode === 'flags' ? data.mode : currentMode;
+  // BUG FIX: include 'numbers' mode
+  const validModes = ['platforms', 'symbols', 'flags', 'numbers'];
+  const modeFromData = validModes.includes(data.mode) ? data.mode : currentMode;
   if (modeFromData !== currentMode) {
     setMode(modeFromData, { skipConfirm: true, skipUndo: true, silent: true });
   }
   selectedSlots = [];
-  const sources = modeFromData === 'platforms' ? [platformsDB] : modeFromData === 'symbols' ? [symbolsDB] : [db];
+  const safeNumbersDB = typeof numbersDB !== 'undefined' ? numbersDB : [];
+  const sources = modeFromData === 'platforms'
+    ? [platformsDB]
+    : modeFromData === 'symbols'
+      ? [symbolsDB]
+      : modeFromData === 'numbers'
+        ? [safeNumbersDB]
+        : [db];
   data.slots.forEach(identifier => {
     const c = sources.map(source => source.find(x => x.iso === identifier || x.tag === identifier)).find(Boolean);
     if (c) selectedSlots.push(c);
@@ -2332,9 +2435,10 @@ function processFilter(countries) {
       }
     } else if (isNumbersMode()) {
       switch (currentFilter) {
-        case 'top': matchTag = c.num <= 16; break;
+        case 'top':    matchTag = c.num <= 16; break;
         case 'squads': matchTag = c.num <= 32; break;
-        case 'teams': matchTag = c.num <= 64; break;
+        case 'teams':  matchTag = c.num <= 64; break;
+        case 'solos':  matchTag = c.num >= 65; break;
       }
     }
     return matchSearch && matchTag;
@@ -2342,7 +2446,7 @@ function processFilter(countries) {
 }
 
 function getSorted(arr) {
-  if (isNumbersMode()) return [...arr];
+  if (isNumbersMode()) return [...arr]; // Numbers always in numeric order (1–101)
   const sortMode = sortSelect ? sortSelect.value : 'alpha';
   return [...arr].sort((a, b) => {
     if (sortMode === 'alpha')      return a.name.localeCompare(b.name);
@@ -2411,7 +2515,7 @@ function renderLibrary() {
       div.innerHTML = `
         ${renderNumberIcon(c)}
         <div class="item-name" title="${c.name}">${displayName}</div>
-        <div class="item-tag">${c.category}</div>
+        <div class="item-tag">#${c.num}</div>
       `;
       div.setAttribute('data-tooltip', `${c.tag} • ${c.category}`);
     } else {
@@ -2485,23 +2589,8 @@ function renderLibrary() {
     frag.appendChild(div);
   });
   availableList.appendChild(frag);
-  
-  // Lazy load images in viewport
-  if ('IntersectionObserver' in window) {
-    const images = availableList.querySelectorAll('img[loading="lazy"]');
-    const imageObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          const img = entry.target;
-          img.src = img.src; // Trigger load
-          imageObserver.unobserve(img);
-        }
-      });
-    }, { rootMargin: '50px' });
-    
-    images.forEach(img => imageObserver.observe(img));
-  }
-  
+  // BUG FIX: removed IntersectionObserver – it was re-created on every render (memory leak)
+  // and img.src = img.src was a no-op since loading="lazy" already handles deferred loads.
   if (window.lucide) lucide.createIcons({ nodes: [...availableList.querySelectorAll('[data-lucide]')] });
 }
 
@@ -2553,7 +2642,7 @@ function renderRoster() {
       <div class="slot-num">${num}</div>
       ${imgHtml}
       <div class="item-name">${c.name}</div>
-      <div class="item-tag">${isFlagsMode() ? c.iso.toUpperCase() : c.category}</div>
+      <div class="item-tag">${isFlagsMode() ? c.iso.toUpperCase() : isNumbersMode() ? `#${c.num}` : c.category}</div>
       <button class="slot-del" title="Eliminar (Del)" data-idx="${i}">
         <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
@@ -2987,6 +3076,10 @@ function hexToRgba(hex, alpha = 1) {
 
 function drawNumberToCanvas(context, item, number, S) {
   context.clearRect(0, 0, S, S);
+
+  // Draw user-selected background (color, gradient, transparent)
+  drawCanvasBackground(context, S, item);
+
   const baseColor = item.color || '#FACC15';
   context.save();
 
@@ -3000,9 +3093,8 @@ function drawNumberToCanvas(context, item, number, S) {
   // Apply opacity
   context.globalAlpha = opacityPct;
 
-  // GIANT NUMBER sizing based on slider (scale 1.6x so 55% looks big, up to ~1.6x at 100%)
-  // Original fontHeight was Math.floor(S * 0.88). If sizePct is 0.55, 0.55 * 1.6 = 0.88.
-  const fontHeight = Math.floor(S * (sizePct * 1.6)); 
+  // Font height scaled by the size slider (55% default → ~88% of S which is a big number)
+  const fontHeight = Math.floor(S * (sizePct * 1.6));
 
   const cx = S / 2;
   const cy = S / 2;
@@ -3013,17 +3105,12 @@ function drawNumberToCanvas(context, item, number, S) {
   context.lineJoin = 'round';
   context.miterLimit = 2;
 
-  // Create smooth vibrant color gradient directly inside the digits
-  // If user explicitly chose a numberColor (other than white), maybe blend it, 
-  // but to keep the neon style vibrant, we'll stick to baseColor as the primary theme
-  // or override with numberColor if they changed it.
-  const customColor = numberColor.value;
-  const useColor = (customColor && customColor.toLowerCase() !== '#ffffff') ? customColor : baseColor;
+  // Color: always use the user's chosen numberColor as the primary color.
+  // If RGB toggle is on, use full rainbow gradient instead.
+  const useColor = numberColor.value || baseColor;
 
   const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
-  
   if (rgbToggle && rgbToggle.checked) {
-    // Rainbow / RGB Effect
     textGrad.addColorStop(0, '#FF0000');
     textGrad.addColorStop(0.15, '#FF7F00');
     textGrad.addColorStop(0.3, '#FFFF00');
@@ -3037,27 +3124,27 @@ function drawNumberToCanvas(context, item, number, S) {
     textGrad.addColorStop(1, hexToRgba(useColor, 0.75));
   }
 
-  // Outer neon glow surrounding the number (or custom drop shadow if toggle is on)
+  // Shadow / neon glow
   if (shadowToggle.checked) {
-    context.shadowColor = shadowColor.value || '#000000';
-    context.shadowBlur = Math.max(4, fontHeight * 0.12);
+    context.shadowColor   = shadowColor.value || '#000000';
+    context.shadowBlur    = Math.max(4, fontHeight * 0.12);
     context.shadowOffsetX = Math.max(2, fontHeight * 0.04);
     context.shadowOffsetY = Math.max(2, fontHeight * 0.04);
   } else {
-    context.shadowColor = useColor;
-    context.shadowBlur = S * 0.12;
+    // Default neon glow using the chosen color
+    context.shadowColor   = useColor;
+    context.shadowBlur    = S * 0.12;
     context.shadowOffsetX = 0;
     context.shadowOffsetY = 0;
   }
 
-  // Deep dark double-stroke outline around text for maximum contrast
+  // Stroke outline
   const strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
-  context.lineWidth = strokeWidth * 2;
+  context.lineWidth   = strokeWidth * 2;
   context.strokeStyle = strokeColor.value || '#000000';
   context.strokeText(textVal, cx, cy + fontHeight * 0.04);
 
-  // Gradient fill directly inside the number
-  // (Keep the shadow active so the fill ALSO casts the intense neon glow, like the original design)
+  // Gradient fill
   context.fillStyle = textGrad;
   context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
@@ -3068,11 +3155,13 @@ function drawSymbolToCanvas(context, item, number, S) {
   context.clearRect(0, 0, S, S);
   const baseColor = item.color || '#334155';
   context.save();
-  if (bgTransparent.checked) {
+  // BUG FIX: when transparent is checked we skip custom bg; otherwise draw user bg
+  if (!bgTransparent.checked) {
+    drawCanvasBackground(context, S, item);
+  } else {
+    // Transparent mode: fill with the symbol's own color as the background panel
     context.fillStyle = baseColor;
     context.fillRect(0, 0, S, S);
-  } else {
-    drawCanvasBackground(context, S, item);
   }
 
   const pad = S * 0.12;
@@ -3248,8 +3337,9 @@ function exportCSVOnly() {
     const num  = i + getStartNum();
     const cleanName = sanitizeFilename(c.name);
     const file = `${num}-${cleanName}.png`;
-    const color = c.color.replace('#', '') + 'FF';
-    const tag = c.tag || c.iso.toUpperCase();
+    // BUG FIX: guard against undefined c.color
+    const color = (c.color || '#000000').replace('#', '') + 'FF';
+    const tag = c.tag || (c.iso ? c.iso.toUpperCase() : String(num));
     rows.push(formatCsvRow([num, c.name, tag, file, color]));
   });
   const blob = new Blob([rows.join('\n')], { type: 'text/csv' });
@@ -3276,23 +3366,39 @@ async function generatePack() {
     gCanvas.width = gCanvas.height = EXPORT_SIZE;
     const gCtx = gCanvas.getContext('2d');
 
+    // Track timing to estimate remaining time
+    let exportStartTime = Date.now();
+    let timingSamples = [];
+
     for (let i = 0; i < selectedSlots.length; i++) {
       const c   = selectedSlots[i];
       const num = i + startNum;
       const pct = Math.round((i / selectedSlots.length) * 100);
 
-      progressText.textContent    = t('progress_generating_item', { current: i + 1, total: selectedSlots.length, name: c.name });
+      // Build time-remaining estimate from rolling average
+      let etaText = '';
+      if (i > 0 && timingSamples.length > 0) {
+        const avgMs = timingSamples.reduce((a, b) => a + b, 0) / timingSamples.length;
+        const remaining = Math.round((selectedSlots.length - i) * avgMs / 1000);
+        etaText = remaining >= 2 ? ` — ~${remaining}s` : '';
+      }
+
+      progressText.textContent    = t('progress_generating_item', { current: i + 1, total: selectedSlots.length, name: c.name }) + etaText;
       progressPercent.textContent = `${pct}%`;
       progressFill.style.width    = pct + '%';
       progressContainer.setAttribute('aria-valuenow', pct);
 
       const cleanName = sanitizeFilename(c.name);
       const fileName  = `${num}-${cleanName}.png`;
-      const color = c.color.replace('#', '') + 'FF';
-      const tag = c.tag || c.iso.toUpperCase();
+      // BUG FIX: guard against undefined c.color (already fixed in exportCSVOnly, also here)
+      const color = (c.color || '#000000').replace('#', '') + 'FF';
+      const tag = c.tag || (c.iso ? c.iso.toUpperCase() : String(num));
       csvRows.push(formatCsvRow([num, c.name, tag, fileName, color]));
 
+      const itemStart = Date.now();
       const blob = await fetchImageAndDraw(c, num, gCanvas, gCtx, EXPORT_SIZE);
+      timingSamples.push(Date.now() - itemStart);
+      if (timingSamples.length > 10) timingSamples.shift(); // keep rolling window
       if (blob) iconFolder.file(fileName, blob, { binary: true });
     }
 
@@ -3713,7 +3819,8 @@ function handleSearchKeydown(e) {
     items[searchDropdownIdx]?.scrollIntoView({ block: 'nearest' });
   } else if (e.key === 'ArrowUp') {
     e.preventDefault();
-    searchDropdownIdx = Math.max(searchDropdownIdx - 1, 0);
+    // BUG FIX: allow wrapping from first item to last when pressing ArrowUp at index 0
+    searchDropdownIdx = searchDropdownIdx <= 0 ? items.length - 1 : searchDropdownIdx - 1;
     items.forEach((it, i) => {
       const isActive = i === searchDropdownIdx;
       it.classList.toggle('active', isActive);
@@ -4180,6 +4287,40 @@ function updateFiltersForMode() {
       <button class="filter-btn" data-filter="dev">${t('filter_dev')}</button>
       <button class="filter-btn" data-filter="music">${t('filter_music')}</button>
     `;
+  } else if (isNumbersMode()) {
+    filtersContainer.innerHTML = `
+      <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
+      <button class="filter-btn" data-filter="top">
+        <i data-lucide="star"></i>Top 16
+      </button>
+      <button class="filter-btn range-add-btn" data-filter="top" data-range-max="16" title="Agregar Top 16 de golpe">
+        <i data-lucide="plus-circle"></i>+16
+      </button>
+      <button class="filter-btn" data-filter="squads">Top 32</button>
+      <button class="filter-btn range-add-btn" data-filter="squads" data-range-max="32" title="Agregar Top 32 de golpe">
+        <i data-lucide="plus-circle"></i>+32
+      </button>
+      <button class="filter-btn" data-filter="teams">Top 64</button>
+      <button class="filter-btn range-add-btn" data-filter="teams" data-range-max="64" title="Agregar Top 64 de golpe">
+        <i data-lucide="plus-circle"></i>+64
+      </button>
+      <button class="filter-btn" data-filter="solos">#65–101</button>
+    `;
+    // Wire up the range-add buttons for numbers
+    filtersContainer.querySelectorAll('.range-add-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const max = parseInt(btn.dataset.rangeMax, 10);
+        const safeNumbersDB = typeof numbersDB !== 'undefined' ? numbersDB : [];
+        const toAdd = safeNumbersDB.filter(c => c.num <= max && !selectedSlots.includes(c));
+        if (!toAdd.length) { showToast(t('toast_all_selected_already')); return; }
+        pushUndo();
+        toAdd.forEach(c => selectedSlots.push(c));
+        currentPreviewIdx = selectedSlots.length - 1;
+        updateUI();
+        showToast(t('toast_added_count', { count: toAdd.length, items: getItemLabelForCount(toAdd.length) }), 'success');
+      });
+    });
   } else {
     filtersContainer.innerHTML = `
       <button class="filter-btn active" data-filter="all">${t('filter_all')}</button>
@@ -4237,11 +4378,18 @@ function syncModeUIStrings() {
   applyPlaceholder(searchInput);
   applyPlaceholder(searchModalInput);
 
+  // Update resolution indicator
+  const S = parseInt(exportSizeInput.value, 10) || CONFIG.DEFAULT_EXPORT_SIZE;
+  const resHint = document.getElementById('exportResolutionHint');
+  if (resHint) resHint.textContent = `■ Exportación: ${S} × ${S} px`;
+
   if (canvasPlaceholderText) {
     canvasPlaceholderText.innerHTML = isSymbolsMode()
       ? t('placeholder_preview_symbols')
       : isPlatformsMode()
       ? t('placeholder_preview_platforms')
+      : isNumbersMode()
+      ? t('placeholder_preview_numbers')
       : t('placeholder_preview_flags');
   }
 }
@@ -4257,7 +4405,8 @@ function updateStats() {
     els[1].textContent = db.filter(c => c.filters.includes('América')).length;
     els[2].textContent = db.filter(c => c.filters.includes('Europa')).length;
     els[3].textContent = db.filter(c => c.filters.includes('Asia')).length;
-    els[4].textContent = db.filter(c => c.filters.some(f => f.toLowerCase().startsWith('fric') || f === 'África')).length;
+    // BUG FIX: was 'fric' (missing leading 'a'), should be 'afric'
+    els[4].textContent = db.filter(c => c.filters.some(f => f.toLowerCase().startsWith('afric') || f === 'África')).length;
     els[5].textContent = db.filter(c => c.filters.some(f => f.toLowerCase().startsWith('ocean') || f === 'Oceanía')).length;
   } else if (isPlatformsMode()) {
     const src = currentDB || platformsDB;
