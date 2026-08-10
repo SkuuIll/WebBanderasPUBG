@@ -925,10 +925,23 @@ function isPlatformsMode() { return currentMode === 'platforms'; }
 function isSymbolsMode() { return currentMode === 'symbols'; }
 function isNumbersMode() { return currentMode === 'numbers'; }
 
+function getContrastTextColor(hex) {
+  if (!hex || typeof hex !== 'string') return '#FFFFFF';
+  let c = hex.replace('#', '');
+  if (c.length === 3) c = c.split('').map(x => x + x).join('');
+  const r = parseInt(c.slice(0, 2), 16) || 0;
+  const g = parseInt(c.slice(2, 4), 16) || 0;
+  const b = parseInt(c.slice(4, 6), 16) || 0;
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 145 ? '#0A0E14' : '#FFFFFF';
+}
+
 function renderNumberIcon(item, sizeClass = '') {
   const label = escapeHtml(item.name);
   const num = escapeHtml(String(item.num || '?'));
-  return `<span class="symbol-icon number-icon ${sizeClass}" style="background:${escapeHtml(item.color)};color:#000;font-weight:900;font-size:1.1rem;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;" aria-hidden="true">#${num}</span><span class="sr-only">${label}</span>`;
+  const textColor = getContrastTextColor(item.color);
+  const textShadow = textColor === '#FFFFFF' ? '0 1px 2px rgba(0,0,0,0.7)' : '0 1px 2px rgba(255,255,255,0.4)';
+  return `<span class="symbol-icon number-icon ${sizeClass}" style="background:${escapeHtml(item.color)};color:${textColor};text-shadow:${textShadow};font-weight:900;font-size:1.05rem;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid rgba(255,255,255,0.22);box-shadow:0 2px 6px rgba(0,0,0,0.25);" aria-hidden="true">#${num}</span><span class="sr-only">${label}</span>`;
 }
 
 function renderSymbolIcon(item, sizeClass = '') {
@@ -3158,12 +3171,62 @@ function drawNumberToCanvas(context, item, number, S) {
   context.lineJoin = 'round';
   context.miterLimit = 2;
 
-  // Color: always use the user's chosen numberColor as the primary color.
-  // If RGB toggle is on, use full rainbow gradient instead.
-  const useColor = numberColor.value || baseColor;
+  // Color: use each team number's unique procedural color in numbers mode
+  const useColor = isNumbersMode() ? (item.color || baseColor) : (numberColor.value || baseColor);
 
-  const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
+  // Shadow / neon glow with number's unique color
+  if (shadowToggle.checked) {
+    context.shadowColor   = shadowColor.value || '#000000';
+    context.shadowBlur    = Math.max(4, fontHeight * 0.12);
+    context.shadowOffsetX = Math.max(2, fontHeight * 0.04);
+    context.shadowOffsetY = Math.max(2, fontHeight * 0.04);
+  } else {
+    // Multi-chromatic glow around the number
+    context.shadowColor   = useColor;
+    context.shadowBlur    = S * 0.14;
+    context.shadowOffsetX = 0;
+    context.shadowOffsetY = 0;
+  }
+
+  // Multi-color chromatic stroke outline
+  const strokeWidth = Math.max(2, Math.floor(fontHeight * strokePct));
+  
+  // 1. Capa de contraste oscuro exterior profunda (base)
+  context.lineWidth   = strokeWidth * 2.8;
+  context.strokeStyle = '#05070A';
+  context.strokeText(textVal, cx, cy + fontHeight * 0.04);
+
+  // 2. Contorno multicolor vibrante (capa media)
+  const strokeGrad = context.createLinearGradient(cx - tw / 2 - strokeWidth, cy - fontHeight / 2, cx + tw / 2 + strokeWidth, cy + fontHeight / 2);
   if (rgbToggle && rgbToggle.checked) {
+    strokeGrad.addColorStop(0, '#FF0055');
+    strokeGrad.addColorStop(0.18, '#FFAA00');
+    strokeGrad.addColorStop(0.36, '#00FF66');
+    strokeGrad.addColorStop(0.54, '#00F0FF');
+    strokeGrad.addColorStop(0.72, '#7000FF');
+    strokeGrad.addColorStop(0.9, '#FF00AA');
+    strokeGrad.addColorStop(1, '#FF0055');
+  } else {
+    strokeGrad.addColorStop(0, '#FF2E63');
+    strokeGrad.addColorStop(0.2, '#FF9900');
+    strokeGrad.addColorStop(0.4, '#00F298');
+    strokeGrad.addColorStop(0.6, '#00D2FC');
+    strokeGrad.addColorStop(0.8, '#9D4EDD');
+    strokeGrad.addColorStop(1, '#FF2E63');
+  }
+
+  context.lineWidth   = strokeWidth * 1.8;
+  context.strokeStyle = strokeGrad;
+  context.strokeText(textVal, cx, cy + fontHeight * 0.04);
+
+  // 3. Línea de separación interior oscura: aísla el cuerpo del número del contorno multicolor
+  context.lineWidth   = strokeWidth * 0.8;
+  context.strokeStyle = '#080C14';
+  context.strokeText(textVal, cx, cy + fontHeight * 0.04);
+
+  // 4. Color sólido puro en el centro del número
+  if (rgbToggle && rgbToggle.checked) {
+    const textGrad = context.createLinearGradient(0, cy - fontHeight / 2, 0, cy + fontHeight / 2);
     textGrad.addColorStop(0, '#FF0000');
     textGrad.addColorStop(0.15, '#FF7F00');
     textGrad.addColorStop(0.3, '#FFFF00');
@@ -3171,34 +3234,10 @@ function drawNumberToCanvas(context, item, number, S) {
     textGrad.addColorStop(0.65, '#00FFFF');
     textGrad.addColorStop(0.8, '#0000FF');
     textGrad.addColorStop(1, '#FF00FF');
+    context.fillStyle = textGrad;
   } else {
-    textGrad.addColorStop(0, '#FFFFFF');
-    textGrad.addColorStop(0.45, useColor);
-    textGrad.addColorStop(1, hexToRgba(useColor, 0.75));
+    context.fillStyle = useColor;
   }
-
-  // Shadow / neon glow
-  if (shadowToggle.checked) {
-    context.shadowColor   = shadowColor.value || '#000000';
-    context.shadowBlur    = Math.max(4, fontHeight * 0.12);
-    context.shadowOffsetX = Math.max(2, fontHeight * 0.04);
-    context.shadowOffsetY = Math.max(2, fontHeight * 0.04);
-  } else {
-    // Default neon glow using the chosen color
-    context.shadowColor   = useColor;
-    context.shadowBlur    = S * 0.12;
-    context.shadowOffsetX = 0;
-    context.shadowOffsetY = 0;
-  }
-
-  // Stroke outline
-  const strokeWidth = Math.max(1, Math.floor(fontHeight * strokePct));
-  context.lineWidth   = strokeWidth * 2;
-  context.strokeStyle = strokeColor.value || '#000000';
-  context.strokeText(textVal, cx, cy + fontHeight * 0.04);
-
-  // Gradient fill
-  context.fillStyle = textGrad;
   context.fillText(textVal, cx, cy + fontHeight * 0.04);
 
   context.restore();

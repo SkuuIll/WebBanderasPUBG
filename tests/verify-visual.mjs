@@ -81,39 +81,31 @@ server.listen(PORT, async () => {
     });
     console.log('Mode toggle layout:\n', JSON.stringify(modeToggleBox, null, 2));
 
-    // 3. Add flags and test different number digits (1, 15, 100)
-    await page.click('#btnCompetitiveMode');
+    // 3. Test Numbers mode with unique colors and multi-colored outlines
+    await page.click('#btnNumbersMode');
     await new Promise(r => setTimeout(r, 600));
 
-    // Check preview for 1 digit (#1)
+    // Add first 10 numbers
+    await page.click('#btnAddAll');
+    await new Promise(r => setTimeout(r, 400));
+
+    // Check preview for Number #1
     await page.click('.roster-item[data-idx="0"]');
     await new Promise(r => setTimeout(r, 300));
-    await page.screenshot({ path: path.join(outDir, 'preview_digit_1.png') });
-    console.log('Saved preview_digit_1.png (1 digit)');
+    await page.screenshot({ path: path.join(outDir, 'numbers_mode_item_1.png') });
+    console.log('Saved numbers_mode_item_1.png');
 
-    // Check preview for 2 digits (#15)
-    await page.click('.roster-item[data-idx="14"]');
+    // Check preview for Number #2
+    await page.click('.roster-item[data-idx="1"]');
     await new Promise(r => setTimeout(r, 300));
-    await page.screenshot({ path: path.join(outDir, 'preview_digit_15.png') });
-    console.log('Saved preview_digit_15.png (2 digits)');
+    await page.screenshot({ path: path.join(outDir, 'numbers_mode_item_2.png') });
+    console.log('Saved numbers_mode_item_2.png');
 
-    // Check preview for 3 digits (#100)
-    await page.click('.roster-item[data-idx="99"]');
+    // Check preview for Number #5
+    await page.click('.roster-item[data-idx="4"]');
     await new Promise(r => setTimeout(r, 300));
-    await page.screenshot({ path: path.join(outDir, 'preview_digit_100.png') });
-    console.log('Saved preview_digit_100.png (3 digits)');
-
-    const exportFooterVisible = await page.$eval('.export-footer', el => {
-      const r = el.getBoundingClientRect();
-      return {
-        top: Math.round(r.top),
-        bottom: Math.round(r.bottom),
-        height: Math.round(r.height),
-        windowHeight: window.innerHeight,
-        inViewport: r.top >= 0 && r.bottom <= window.innerHeight
-      };
-    });
-    console.log('Export footer visibility:\n', JSON.stringify(exportFooterVisible, null, 2));
+    await page.screenshot({ path: path.join(outDir, 'numbers_mode_item_5.png') });
+    console.log('Saved numbers_mode_item_5.png');
 
     await browser.close();
     console.log('VISUAL VERIFICATION COMPLETE: SUCCESS');
