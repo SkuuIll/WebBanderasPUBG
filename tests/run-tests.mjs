@@ -268,10 +268,13 @@ function testHtmlMeta() {
 function testThemeScriptUsesStrictScriptCsp() {
   const html = read('index.html');
   const themeScript = read(path.join('js', 'theme.js'));
+  const serviceWorkerScript = read(path.join('js', 'register-sw.js'));
   check(/<script src="js\/theme\.js"><\/script>/i.test(html), 'Theme bootstrap should be an external local script');
   check(!/script-src[^\"]*'unsafe-inline'/i.test(html), 'Script CSP should not allow unsafe inline scripts');
   check(themeScript.includes("localStorage.getItem('flagforge_theme')"), 'Theme script should preserve stored theme preference');
   check(themeScript.includes("matchMedia('(prefers-color-scheme: light)')"), 'Theme script should respect system preference');
+  check(/<script src="js\/register-sw\.js"><\/script>/i.test(html), 'Service Worker bootstrap should be an external local script');
+  check(serviceWorkerScript.includes("navigator.serviceWorker.register('./sw.js')"), 'Service Worker bootstrap should register sw.js');
 }
 
 function testDataI18nAttrFormat() {
