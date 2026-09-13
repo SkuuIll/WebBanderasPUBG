@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://flagcdn.com https://cdn.simpleicons.org https://kapowaz.github.io https://www.vectorlogo.zone data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' https://flagcdn.com https://cdn.simpleicons.org https://kapowaz.github.io https://www.vectorlogo.zone data:; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; script-src 'self' https://cdnjs.cloudflare.com https://unpkg.com https://cdn.jsdelivr.net;">
   <title>FlagForge Studio | Editor de Banderas y Logos</title>
   <meta name="description" content="Herramienta profesional para generar packs de banderas y logos de plataformas con números personalizados para PUBG Observer. Exporta en ZIP listo para usar en overlays de stream.">
   <meta name="color-scheme" content="light dark">
@@ -21,16 +21,7 @@
   <meta name="twitter:description" content="Generá packs de banderas y logos numerados para PUBG Observer desde el navegador.">
   <meta name="twitter:image" content="https://skuuill.github.io/WebBanderasPUBG/icons/icon-512.png">
 
-  <script>
-    (function () {
-      try {
-        var stored = localStorage.getItem('flagforge_theme');
-        var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
-        var isLight = stored === 'light' || (!stored && prefersLight);
-        if (isLight) document.documentElement.classList.add('light');
-      } catch (e) {}
-    })();
-  </script>
+  <script src="js/theme.js"></script>
   
   <!-- Favicon -->
   <link rel="icon" type="image/svg+xml" href="icons/favicon.svg">
