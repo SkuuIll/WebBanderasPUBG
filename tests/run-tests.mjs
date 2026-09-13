@@ -265,6 +265,15 @@ function testHtmlMeta() {
   check(/name="twitter:card"/i.test(html), 'Missing Twitter card meta');
 }
 
+function testThemeScriptUsesStrictScriptCsp() {
+  const html = read('index.html');
+  const themeScript = read(path.join('js', 'theme.js'));
+  check(/<script src="js\/theme\.js"><\/script>/i.test(html), 'Theme bootstrap should be an external local script');
+  check(!/script-src[^\"]*'unsafe-inline'/i.test(html), 'Script CSP should not allow unsafe inline scripts');
+  check(themeScript.includes("localStorage.getItem('flagforge_theme')"), 'Theme script should preserve stored theme preference');
+  check(themeScript.includes("matchMedia('(prefers-color-scheme: light)')"), 'Theme script should respect system preference');
+}
+
 function testDataI18nAttrFormat() {
   const html = read('index.html');
   const bad = [];
@@ -521,6 +530,7 @@ function run() {
   testLocalAssetsExist();
   testCspCoversExternalHosts();
   testHtmlMeta();
+  testThemeScriptUsesStrictScriptCsp();
   testDataI18nAttrFormat();
   testHelpCreditsLink();
   testExportHelpersPresent();
